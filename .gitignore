@@ -41,3 +41,11 @@ pnpm-debug.log*
 
 # mac
 ._*
+
+
+contracts/foundry/out
+contracts/foundry/cache
+contracts/foundry/broadcast
+
+node_modules
+.next

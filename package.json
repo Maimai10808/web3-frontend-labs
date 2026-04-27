@@ -13,7 +13,11 @@
     "lint": "turbo lint",
     "typecheck": "turbo typecheck",
     "format": "prettier --write .",
-    "clean": "rm -rf node_modules package-lock.json apps/*/.next apps/*/node_modules packages/*/node_modules"
+    "clean": "rm -rf node_modules package-lock.json apps/*/.next apps/*/node_modules packages/*/node_modules",
+    "contracts:build": "forge build --root contracts/foundry",
+    "contracts:deploy:local:raw": "cd contracts/foundry && source .env && forge script script/DeployLocal.s.sol --rpc-url \"$LOCAL_RPC_URL\" --private-key \"$PRIVATE_KEY\" --broadcast",
+    "contracts:sync": "node scripts/sync-contracts.mjs",
+    "deploy:local": "npm run contracts:build && npm run contracts:deploy:local:raw && npm run contracts:sync"
   },
   "keywords": [
     "web3",
