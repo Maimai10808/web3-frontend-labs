@@ -1,0 +1,36 @@
+{
+  "name": "web3-frontend-labs",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Web3 frontend labs for wallet auth, trading flow, multi-chain interaction, realtime state and metadata upload demos.",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "typecheck": "turbo typecheck",
+    "format": "prettier --write .",
+    "clean": "rm -rf node_modules package-lock.json apps/*/.next apps/*/node_modules packages/*/node_modules"
+  },
+  "keywords": [
+    "web3",
+    "frontend",
+    "nextjs",
+    "wagmi",
+    "viem",
+    "siwe",
+    "eip712",
+    "trading"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "prettier": "^3.8.3",
+    "turbo": "^2.9.6",
+    "typescript": "^5.9.3"
+  },
+  "packageManager": "npm@11.5.1"
+}
