@@ -12,7 +12,10 @@ import {
 } from "wagmi";
 import { parseEther } from "viem";
 import { EvmAdapter } from "@/lib/multichain/adapters/evm-adapter";
-import { MockSolanaAdapter } from "@/lib/multichain/adapters/mock-solana-adapter";
+import { useWallet, useConnection } from "@solana/wallet-adapter-react";
+import { useWalletModal } from "@solana/wallet-adapter-react-ui";
+import { SolanaAdapter } from "@/lib/multichain/adapters/solana-adapter";
+
 import { MockBtcAdapter } from "@/lib/multichain/adapters/mock-btc-adapter";
 import { MockSeiAdapter } from "@/lib/multichain/adapters/mock-sei-adapter";
 import { useActiveEcosystem } from "./use-active-ecosystem";
@@ -28,6 +31,18 @@ export function useWalletAccount() {
   const { signMessageAsync } = useSignMessage();
   const { signTypedDataAsync } = useSignTypedData();
   const { sendTransactionAsync } = useSendTransaction();
+
+  const { connection } = useConnection();
+  const {
+    publicKey,
+    connected,
+    wallet,
+    connect,
+    disconnect,
+    signMessage,
+    sendTransaction,
+  } = useWallet();
+  const { setVisible } = useWalletModal();
 
   const evmAdapter = useMemo<WalletAdapter>(
     () =>
@@ -74,7 +89,37 @@ export function useWalletAccount() {
     ],
   );
 
-  const solanaAdapter = useMemo(() => new MockSolanaAdapter(), []);
+  const solanaAdapter = useMemo<WalletAdapter>(
+    () =>
+      new SolanaAdapter({
+        connectWallet: async () => {
+          if (!wallet) {
+            setVisible(true);
+            return;
+          }
+          await connect();
+        },
+        disconnectWallet: () => disconnect(),
+        getPublicKey: () => publicKey,
+        getConnected: () => connected,
+        getWalletName: () => wallet?.adapter.name ?? "Solana Wallet",
+        signMessage,
+        sendTransaction,
+        connection,
+      }),
+    [
+      wallet,
+      publicKey,
+      connected,
+      connect,
+      disconnect,
+      signMessage,
+      sendTransaction,
+      connection,
+      setVisible,
+    ],
+  );
+
   const btcAdapter = useMemo(() => new MockBtcAdapter(), []);
   const seiAdapter = useMemo(() => new MockSeiAdapter(), []);
 
