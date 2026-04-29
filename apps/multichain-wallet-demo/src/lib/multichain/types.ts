@@ -115,6 +115,14 @@ export type MultiChainError = {
   ecosystem?: ChainEcosystem;
 };
 
+export type EventLogEntry = {
+  id: string;
+  level: "info" | "success" | "error";
+  title: string;
+  message: string;
+  timestamp: string;
+};
+
 export interface WalletAdapter {
   ecosystem: ChainEcosystem;
   connect(): Promise<WalletAccount>;

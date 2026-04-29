@@ -52,6 +52,28 @@ export const CHAINS = {
     explorerUrl: "https://www.seiscan.app",
     testnet: false,
   },
+  TON: {
+    id: "ton",
+    ecosystem: "ton",
+    name: "TON",
+    nativeCurrency: "TON",
+    explorerUrl: "https://tonviewer.com",
+    testnet: false,
+  },
 } satisfies Record<string, ChainDefinition>;
 
-export const CHAIN_OPTIONS = Object.values(CHAINS);
+export const ECOSYSTEM_OPTIONS = [
+  { label: "EVM", value: "evm" },
+  { label: "Solana", value: "solana" },
+  { label: "BTC", value: "btc" },
+  { label: "Sei", value: "sei" },
+  { label: "TON (reserved)", value: "ton" },
+] as const;
+
+export const DEFAULT_CHAIN_BY_ECOSYSTEM = {
+  evm: CHAINS.ARBITRUM,
+  solana: CHAINS.SOLANA,
+  btc: CHAINS.BTC,
+  sei: CHAINS.SEI,
+  ton: CHAINS.TON,
+} as const;

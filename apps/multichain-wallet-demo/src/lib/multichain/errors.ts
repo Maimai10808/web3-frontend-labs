@@ -10,7 +10,7 @@ export function normalizeMultiChainError(
     if (message.includes("user rejected") || message.includes("rejected")) {
       return {
         code: "USER_REJECTED",
-        message: "User rejected the request.",
+        message: "User rejected the wallet request.",
         cause: error,
         ecosystem,
       };
@@ -28,7 +28,16 @@ export function normalizeMultiChainError(
     if (message.includes("unsupported")) {
       return {
         code: "UNSUPPORTED_NETWORK",
-        message: "Unsupported network or wallet capability.",
+        message: "Unsupported network or capability.",
+        cause: error,
+        ecosystem,
+      };
+    }
+
+    if (message.includes("switch")) {
+      return {
+        code: "SWITCH_NETWORK_UNAVAILABLE",
+        message: "Switch network is unavailable.",
         cause: error,
         ecosystem,
       };
@@ -38,6 +47,15 @@ export function normalizeMultiChainError(
       return {
         code: "RPC_ERROR",
         message: "RPC request failed.",
+        cause: error,
+        ecosystem,
+      };
+    }
+
+    if (message.includes("bind")) {
+      return {
+        code: "BIND_FAILED",
+        message: "Wallet binding failed.",
         cause: error,
         ecosystem,
       };
