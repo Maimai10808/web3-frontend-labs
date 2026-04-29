@@ -2,114 +2,153 @@
 
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useAccount, useChainId } from "wagmi";
-
-import { contractAddresses, MockTokenAbi } from "@web3-frontend-labs/contracts";
-
 import { useReadContract } from "wagmi";
+import {
+  mockTokenContract,
+  tradingStateChainId,
+} from "@/lib/contracts/trade-order-book";
 
-import { defaultChain } from "@web3-frontend-labs/wallet";
-
-export function WalletStatus() {
+export function WalletStatus({ compact = false }: { compact?: boolean }) {
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
 
-  const isExpectedChain = chainId === defaultChain.id;
-
-  const tokenAddress = contractAddresses.MockToken;
+  const isExpectedChain = chainId === tradingStateChainId;
 
   const nameQuery = useReadContract({
-    address: tokenAddress,
-
-    abi: MockTokenAbi,
-
+    ...mockTokenContract,
     functionName: "name",
   });
 
   const symbolQuery = useReadContract({
-    address: tokenAddress,
-
-    abi: MockTokenAbi,
-
+    ...mockTokenContract,
     functionName: "symbol",
   });
 
   const totalSupplyQuery = useReadContract({
-    address: tokenAddress,
-
-    abi: MockTokenAbi,
-
+    ...mockTokenContract,
     functionName: "totalSupply",
   });
 
   return (
-    <section className="rounded-2xl border p-4">
-      <div className="mb-4 flex items-center justify-between gap-4">
+    <WalletStatusView
+      isConnected={isConnected}
+      address={address}
+      chainId={chainId}
+      isExpectedChain={isExpectedChain}
+      symbol={String(symbolQuery.data ?? "-")}
+      supply={totalSupplyQuery.data?.toString() ?? "-"}
+      tokenName={String(nameQuery.data ?? "-")}
+      compact={compact}
+    />
+  );
+}
+
+export function WalletStatusView(props: {
+  isConnected: boolean;
+  address?: `0x${string}`;
+  chainId?: number;
+  isExpectedChain: boolean;
+  symbol: string;
+  supply: string;
+  tokenName: string;
+  compact?: boolean;
+}) {
+  return (
+    <section className="h-full rounded-xl border bg-card p-5 shadow-sm sm:p-6">
+      <div className="mb-5 flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-lg font-semibold">Wallet</h2>
+          <div className="text-base font-semibold text-foreground">
+            Wallet / Network / Contract
+          </div>
           <p className="text-sm text-muted-foreground">
-            Connect a wallet and verify the local chain state.
+            Execution status and contract readiness.
           </p>
         </div>
 
         <ConnectButton />
       </div>
 
-      <div className="space-y-2 text-sm">
-        <div>
-          <span className="text-muted-foreground">Connected: </span>
-          <span>{isConnected ? "Yes" : "No"}</span>
-        </div>
-
-        <div>
-          <span className="text-muted-foreground">Address: </span>
-          <span>{address ?? "Not connected"}</span>
-        </div>
-
-        <div>
-          <span className="text-muted-foreground">Current chain: </span>
-          <span>{chainId}</span>
-        </div>
-
-        <div>
-          <span className="text-muted-foreground">Expected chain: </span>
-          <span>{defaultChain.id}</span>
-        </div>
-
-        <div>
-          <span className="text-muted-foreground">Network status: </span>
-          <span>{isExpectedChain ? "Correct network" : "Wrong network"}</span>
-        </div>
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        <Stat
+          label="Wallet"
+          value={props.isConnected ? "Connected" : "Disconnected"}
+        />
+        <Stat
+          label="Current Chain"
+          value={props.chainId ? String(props.chainId) : "-"}
+        />
+        <Stat label="Expected Chain" value={String(tradingStateChainId)} />
+        <Stat
+          label="Network Status"
+          value={props.isExpectedChain ? "Ready" : "Wrong Network"}
+        />
+        <Stat label="Token" value={props.symbol} />
+        <Stat
+          label="Contract"
+          value={`${mockTokenContract.address.slice(0, 6)}...${mockTokenContract.address.slice(-4)}`}
+        />
       </div>
 
-      <section className="rounded-2xl border p-4">
-        <h2 className="text-lg font-semibold">Mock Token</h2>
+      {!props.compact ? (
+        <div className="mt-4 space-y-3">
+          <CompactRow
+            label="Wallet Address"
+            value={props.address ?? "Not connected"}
+            breakAll
+          />
+          <CompactRow
+            label="Contract Address"
+            value={mockTokenContract.address}
+            breakAll
+          />
+          <CompactRow
+            label="Token Metadata"
+            value={`${props.tokenName} (${props.symbol})`}
+          />
+          <CompactRow label="Token Supply" value={props.supply} />
 
-        <div className="mt-4 space-y-2 text-sm">
-          <div>
-            <span className="text-muted-foreground">Address: </span>
-
-            <span className="font-mono">{tokenAddress}</span>
-          </div>
-
-          <div>
-            <span className="text-muted-foreground">Name: </span>
-
-            <span>{String(nameQuery.data ?? "-")}</span>
-          </div>
-
-          <div>
-            <span className="text-muted-foreground">Symbol: </span>
-
-            <span>{String(symbolQuery.data ?? "-")}</span>
-          </div>
-
-          <div>
-            <span className="text-muted-foreground">Total Supply: </span>
-
-            <span>{totalSupplyQuery.data?.toString() ?? "-"}</span>
-          </div>
+          {!props.isExpectedChain ? (
+            <div className="rounded-lg border border-destructive bg-destructive/10 px-4 py-3 text-sm text-destructive">
+              Switch wallet network to chain {tradingStateChainId} before
+              submitting.
+            </div>
+          ) : null}
         </div>
-      </section>
+      ) : null}
     </section>
+  );
+}
+
+function Stat(props: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg bg-muted/50 px-3 py-2.5">
+      <div className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
+        {props.label}
+      </div>
+      <div className="mt-1 truncate text-sm font-medium text-foreground">
+        {props.value}
+      </div>
+    </div>
+  );
+}
+
+function CompactRow(props: {
+  label: string;
+  value: string;
+  breakAll?: boolean;
+}) {
+  return (
+    <div className="grid gap-1 rounded-lg bg-muted/50 px-3 py-2.5 sm:grid-cols-[120px_1fr] sm:items-start">
+      <div className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
+        {props.label}
+      </div>
+      <div
+        className={`text-sm font-medium text-foreground sm:text-right ${
+          props.breakAll ? "break-all" : ""
+        }`}
+      >
+        {props.value}
+      </div>
+    </div>
   );
 }

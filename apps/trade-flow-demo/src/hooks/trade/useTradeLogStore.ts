@@ -3,8 +3,8 @@
 import { create } from "zustand";
 
 import type {
+  ContractOrder,
   OrderEvent,
-  Operation,
   SigningPayload,
   SubmitTradeResponse,
   TradeData,
@@ -15,7 +15,7 @@ import type {
 type TradeLogEntrySection =
   | "formInput"
   | "tradeData"
-  | "operation"
+  | "contractOrder"
   | "signingPayload"
   | "signature"
   | "submitResponse"
@@ -36,7 +36,7 @@ type TradeLogStore = {
   recordSubmission: (params: {
     formInput: TradeFormInput;
     tradeData: TradeData;
-    operation: Operation;
+    contractOrder?: ContractOrder;
     signingPayload: SigningPayload;
     signature: string;
     submitResponse: SubmitTradeResponse;
@@ -46,7 +46,7 @@ type TradeLogStore = {
     message: string;
     formInput?: TradeFormInput;
     tradeData?: TradeData;
-    operation?: Operation;
+    contractOrder?: ContractOrder;
     signingPayload?: SigningPayload;
     signature?: string;
   }) => void;
@@ -86,7 +86,7 @@ export const useTradeLogStore = create<TradeLogStore>((set) => ({
         ...state.snapshot,
         formInput: params.formInput,
         tradeData: params.tradeData,
-        operation: params.operation,
+        contractOrder: params.contractOrder,
         signingPayload: params.signingPayload,
         signature: params.signature,
         submitResponse: params.submitResponse,
@@ -96,7 +96,9 @@ export const useTradeLogStore = create<TradeLogStore>((set) => ({
         createEntry("submitResponse", "Submit Response", params.submitResponse),
         createEntry("signature", "Signature", params.signature),
         createEntry("signingPayload", "Signing Payload", params.signingPayload),
-        createEntry("operation", "Operation", params.operation),
+        ...(params.contractOrder
+          ? [createEntry("contractOrder", "Contract Order", params.contractOrder)]
+          : []),
         createEntry("tradeData", "Encoded Trade Data", params.tradeData),
         createEntry("formInput", "Trade Form Input", params.formInput),
       ]),
@@ -119,7 +121,7 @@ export const useTradeLogStore = create<TradeLogStore>((set) => ({
         ...state.snapshot,
         formInput: params.formInput ?? state.snapshot.formInput,
         tradeData: params.tradeData ?? state.snapshot.tradeData,
-        operation: params.operation ?? state.snapshot.operation,
+        contractOrder: params.contractOrder ?? state.snapshot.contractOrder,
         signingPayload: params.signingPayload ?? state.snapshot.signingPayload,
         signature: params.signature ?? state.snapshot.signature,
         errorMessage: params.message,

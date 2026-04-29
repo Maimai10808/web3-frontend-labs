@@ -24,22 +24,21 @@ export function LogPanel() {
   const snapshot = useTradeLogStore((state) => state.snapshot);
   const entries = useTradeLogStore((state) => state.entries);
   const clear = useTradeLogStore((state) => state.clear);
+  const latestEntries = entries.slice(0, 6);
 
   return (
-    <Card className="trade-panel overflow-hidden rounded-[2rem]">
-      <CardHeader className="border-b border-[var(--line-soft)] pb-5">
+    <Card className="h-[420px] overflow-hidden rounded-xl border bg-card shadow-sm">
+      <CardHeader className="border-b pb-4">
         <div className="space-y-1">
-          <div className="inline-flex items-center gap-2 rounded-full bg-emerald-100/80 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-emerald-700">
+          <div className="inline-flex items-center gap-2 rounded-md bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">
             <ReceiptText className="size-3.5" />
             Activity Logs
           </div>
-          <CardTitle className="text-2xl font-semibold tracking-tight">
-            Log Panel
+          <CardTitle className="text-base font-semibold text-foreground">
+            Terminal Events
           </CardTitle>
-          <CardDescription>
-            Inspect each step in the flow: validated form input, encoded trade
-            data, operation, signing payload, signature, submit response, and
-            real-time order events.
+          <CardDescription className="text-sm text-muted-foreground">
+            Validated, signed, submitted, and event updates.
           </CardDescription>
         </div>
 
@@ -48,7 +47,7 @@ export function LogPanel() {
             type="button"
             variant="outline"
             size="sm"
-            className="trade-button-secondary rounded-2xl px-4"
+            className="px-4"
             onClick={clear}
             disabled={entries.length === 0}
           >
@@ -58,7 +57,7 @@ export function LogPanel() {
         </CardAction>
       </CardHeader>
 
-      <CardContent className="space-y-6 pt-6">
+      <CardContent className="flex h-[calc(100%-89px)] flex-col gap-4 pt-5">
         <div className="grid gap-3 sm:grid-cols-3">
           <StatCard label="Entries" value={entries.length} />
           <StatCard
@@ -72,7 +71,7 @@ export function LogPanel() {
         </div>
 
         {snapshot.errorMessage ? (
-          <div className="rounded-2xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
+          <div className="rounded-lg border border-destructive bg-destructive/10 p-4 text-sm text-destructive">
             <div className="flex items-center gap-2 font-medium">
               <ShieldAlert className="size-4" />
               Last error
@@ -81,67 +80,49 @@ export function LogPanel() {
           </div>
         ) : null}
 
-        <div className="grid gap-4 xl:grid-cols-2">
-          <LogBlock
-            title="Encoded Trade Data"
-            payload={snapshot.tradeData}
-            emptyText="No trade data encoded yet."
-          />
-          <LogBlock
-            title="Operation"
-            payload={snapshot.operation}
-            emptyText="No operation built yet."
-          />
-          <LogBlock
-            title="Signing Payload"
-            payload={snapshot.signingPayload}
-            emptyText="No signing payload generated yet."
-          />
-          <LogBlock
-            title="Submit Response"
-            payload={snapshot.submitResponse}
-            emptyText="No submit response yet."
-          />
-        </div>
-
-        <div className="space-y-3">
-          <div className="flex items-center gap-2 text-sm font-semibold">
-            <Waves className="size-4 text-emerald-600" />
-            Event Timeline
+        <div className="flex min-h-0 flex-1 flex-col gap-3">
+          <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+            <Waves className="size-4 text-primary" />
+            Recent Feed
           </div>
 
           {entries.length === 0 ? (
-            <div className="flex min-h-44 flex-col items-center justify-center rounded-3xl border border-dashed border-[var(--line-strong)] bg-white/48 p-6 text-center">
-              <div className="mb-3 inline-flex rounded-2xl bg-emerald-100/80 p-3 text-emerald-700">
-                <FileJson2 className="size-5" />
+            <div className="flex min-h-0 flex-1 items-center justify-center rounded-lg border border-dashed bg-muted/50 p-6 text-center">
+              <div className="space-y-2">
+                <div className="mx-auto inline-flex rounded-md bg-background p-3 text-muted-foreground">
+                  <FileJson2 className="size-5" />
+                </div>
+                <div className="text-sm font-medium text-foreground">No events yet</div>
               </div>
-              <div className="text-base font-medium">No logs yet</div>
-              <p className="mt-2 max-w-md text-sm leading-6 text-slate-600">
-                Submit a trade or wait for an order event. The latest activity
-                will appear here as structured logs.
-              </p>
             </div>
           ) : (
-            <div className="space-y-3">
-              {entries.map((entry) => (
+            <div className="min-h-0 flex-1 overflow-auto rounded-lg bg-muted/50 p-3">
+              {latestEntries.map((entry) => (
                 <div
                   key={entry.id}
-                  className="trade-soft-card rounded-2xl p-4"
+                  className="mb-2 rounded-md border bg-background p-3 last:mb-0"
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div>
-                      <div className="text-sm font-semibold">{entry.title}</div>
-                      <div className="mt-1 text-xs uppercase tracking-[0.16em] text-slate-500">
+                      <div className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
                         {entry.section}
                       </div>
+                      <div className="mt-1 text-sm font-medium text-foreground">
+                        {entry.title}
+                      </div>
                     </div>
-                    <div className="text-xs text-slate-500">
+                    <div className="font-mono text-[11px] text-muted-foreground">
                       {format(entry.createdAt, "HH:mm:ss")}
                     </div>
                   </div>
-                  <pre className="trade-muted-block mt-3 overflow-x-auto rounded-2xl p-3 text-xs leading-6 text-foreground">
-                    <code>{JSON.stringify(entry.payload, null, 2)}</code>
-                  </pre>
+                  <details className="mt-3">
+                    <summary className="cursor-pointer font-mono text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
+                      View payload
+                    </summary>
+                    <pre className="mt-2 overflow-x-auto rounded-md bg-muted p-3 font-mono text-xs leading-5 text-foreground">
+                      <code>{JSON.stringify(entry.payload, null, 2)}</code>
+                    </pre>
+                  </details>
                 </div>
               ))}
             </div>
@@ -152,34 +133,13 @@ export function LogPanel() {
   );
 }
 
-function LogBlock(props: {
-  title: string;
-  payload: unknown;
-  emptyText: string;
-}) {
-  return (
-    <div className="trade-soft-card rounded-3xl p-4">
-      <div className="mb-3 text-sm font-semibold">{props.title}</div>
-      {props.payload ? (
-        <pre className="trade-muted-block overflow-x-auto rounded-2xl p-3 text-xs leading-6 text-foreground">
-          <code>{JSON.stringify(props.payload, null, 2)}</code>
-        </pre>
-      ) : (
-        <div className="rounded-2xl border border-dashed border-[var(--line-strong)] bg-white/48 p-4 text-sm text-slate-600">
-          {props.emptyText}
-        </div>
-      )}
-    </div>
-  );
-}
-
 function StatCard(props: { label: string; value: string | number }) {
   return (
-    <div className="trade-soft-card rounded-2xl p-4">
-      <div className="text-xs font-medium uppercase tracking-[0.16em] text-slate-500">
+    <div className="rounded-lg bg-muted/50 px-3 py-2.5">
+      <div className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">
         {props.label}
       </div>
-      <div className="mt-2 text-lg font-semibold text-slate-800">
+      <div className="mt-1 truncate text-sm font-medium text-foreground">
         {props.value}
       </div>
     </div>

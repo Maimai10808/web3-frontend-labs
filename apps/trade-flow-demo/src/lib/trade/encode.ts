@@ -1,9 +1,15 @@
 import type {
+  ContractOrder,
   Operation,
   SigningPayload,
   TradeData,
   TradeFormInput,
 } from "./types";
+import {
+  getTradeOrderDomain,
+  serializeChainTradeOrder,
+  tradeOrderTypes,
+} from "@/lib/contracts/trade-order-book";
 
 function nowSeconds() {
   return Math.floor(Date.now() / 1000);
@@ -44,7 +50,7 @@ export function buildOperation(params: {
   };
 }
 
-export function buildSigningPayload(operation: Operation): SigningPayload {
+export function buildMockSigningPayload(operation: Operation): SigningPayload {
   return {
     app: "SimplifiedTradingDemo",
     version: "1",
@@ -56,15 +62,47 @@ export function buildSigningPayload(operation: Operation): SigningPayload {
 export function createTradeSigningFlow(params: {
   account: `0x${string}`;
   input: TradeFormInput;
+  chainId: number;
+  chainOrder?: {
+    trader: `0x${string}`;
+    side: 0 | 1;
+    baseToken: `0x${string}`;
+    quoteToken: `0x${string}`;
+    price: bigint;
+    amount: bigint;
+    tif: bigint;
+    nonce: bigint;
+    deadline: bigint;
+  };
 }) {
   const tradeData = encodeTradeData(params.input);
+  const contractOrder: ContractOrder | undefined = params.chainOrder
+    ? serializeChainTradeOrder(params.chainOrder)
+    : undefined;
+  const signingPayload: SigningPayload = {
+    domain: getTradeOrderDomain(params.chainId),
+    types: tradeOrderTypes,
+    primaryType: "TradeOrder",
+    message: contractOrder,
+  };
 
+  return {
+    tradeData,
+    contractOrder,
+    signingPayload,
+  };
+}
+
+export function createMockTradeSigningFlow(params: {
+  account: `0x${string}`;
+  input: TradeFormInput;
+}) {
+  const tradeData = encodeTradeData(params.input);
   const operation = buildOperation({
     account: params.account,
     tradeData,
   });
-
-  const signingPayload = buildSigningPayload(operation);
+  const signingPayload = buildMockSigningPayload(operation);
 
   return {
     tradeData,

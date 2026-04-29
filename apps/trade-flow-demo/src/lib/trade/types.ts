@@ -33,6 +33,18 @@ export type TradeData = {
   deadline: number;
 };
 
+export type ContractOrder = {
+  trader: `0x${string}`;
+  side: TradeSide;
+  baseToken: `0x${string}`;
+  quoteToken: `0x${string}`;
+  price: string;
+  amount: string;
+  tif: string;
+  nonce: string;
+  deadline: number;
+};
+
 export type OperationType = "PLACE_LIMIT_ORDER";
 
 export type Operation = {
@@ -45,10 +57,24 @@ export type Operation = {
 };
 
 export type SigningPayload = {
-  app: string;
-  version: string;
-  chainId: number;
-  operation: Operation;
+  app?: string;
+  version?: string;
+  chainId?: number;
+  operation?: Operation;
+  domain?: {
+    name: string;
+    version: string;
+    chainId: number;
+    verifyingContract: `0x${string}`;
+  };
+  types?: {
+    TradeOrder: ReadonlyArray<{
+      name: string;
+      type: string;
+    }>;
+  };
+  primaryType?: "TradeOrder";
+  message?: ContractOrder;
 };
 
 export type SignedOperation = {
@@ -65,7 +91,9 @@ export type SubmitTradeResponse = {
   orderId: string;
   status: OrderStatus;
   order: Order;
+  txHash?: `0x${string}`;
   receivedAt: number;
+  receipt?: unknown;
 };
 
 export type Order = {
@@ -78,7 +106,11 @@ export type Order = {
   price: string;
   filledAmount: string;
   status: OrderStatus;
-  signature: string;
+  signature?: string;
+  txHash?: string;
+  baseToken?: string;
+  quoteToken?: string;
+  nonce?: string;
   createdAt: number;
   updatedAt: number;
   expiresAt: number;
@@ -93,7 +125,7 @@ export type OrderEvent = {
 export type TradeLog = {
   formInput?: TradeFormInput;
   tradeData?: TradeData;
-  operation?: Operation;
+  contractOrder?: ContractOrder;
   signingPayload?: SigningPayload;
   signature?: string;
   submitResponse?: SubmitTradeResponse;

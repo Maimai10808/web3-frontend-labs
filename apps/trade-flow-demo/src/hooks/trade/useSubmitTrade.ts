@@ -1,9 +1,9 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-
-import { createTradeSigningFlow } from "@/lib/trade/encode";
+import { createMockTradeSigningFlow } from "@/lib/trade/encode";
 import { mockSignPayload } from "@/lib/trade/mock-signer";
+import { useSubmitChainOrder } from "./use-submit-chain-order";
 import { useTradeLogStore } from "./useTradeLogStore";
 
 import type {
@@ -11,11 +11,6 @@ import type {
   SubmitTradeResponse,
   TradeFormInput,
 } from "@/lib/trade/types";
-
-type SubmitTradeInput = {
-  account: `0x${string}`;
-  input: TradeFormInput;
-};
 
 async function postSubmitTrade(
   request: SubmitTradeRequest,
@@ -37,61 +32,59 @@ async function postSubmitTrade(
   return data;
 }
 
-async function submitTrade(
-  input: SubmitTradeInput,
-): Promise<SubmitTradeResponse> {
-  const { tradeData, operation, signingPayload } = createTradeSigningFlow({
-    account: input.account,
-    input: input.input,
-  });
-
-  let signature: string | undefined;
-
-  try {
-    signature = await mockSignPayload({
-      account: input.account,
-      payload: signingPayload,
-    });
-
-    const submitResponse = await postSubmitTrade({
-      payload: signingPayload,
-      signature,
-    });
-
-    useTradeLogStore.getState().recordSubmission({
-      formInput: input.input,
-      tradeData,
-      operation,
-      signingPayload,
-      signature,
-      submitResponse,
-    });
-
-    return submitResponse;
-  } catch (error) {
-    useTradeLogStore.getState().recordError({
-      message:
-        error instanceof Error ? error.message : "Failed to submit trade.",
-      formInput: input.input,
-      tradeData,
-      operation,
-      signingPayload,
-      signature,
-    });
-
-    throw error;
-  }
-}
-
 export function useSubmitTrade() {
   const queryClient = useQueryClient();
+  const submitChainOrder = useSubmitChainOrder();
 
   return useMutation({
     mutationKey: ["trade", "submit"],
-    mutationFn: submitTrade,
+    mutationFn: async (input: {
+      account?: `0x${string}`;
+      input: TradeFormInput;
+      mode?: "mock" | "chain";
+    }): Promise<SubmitTradeResponse> => {
+      if ((input.mode ?? "chain") === "chain") {
+        return submitChainOrder.mutateAsync({
+          input: input.input,
+        });
+      }
+
+      if (!input.account) {
+        throw new Error("Mock mode requires an account.");
+      }
+
+      const mockFlow = createMockTradeSigningFlow({
+        account: input.account,
+        input: input.input,
+      });
+      const signature = await mockSignPayload({
+        account: input.account,
+        payload: mockFlow.signingPayload,
+      });
+      const submitResponse = await postSubmitTrade({
+        payload: mockFlow.signingPayload,
+        signature,
+      });
+
+      useTradeLogStore.getState().recordSubmission({
+        formInput: input.input,
+        tradeData: mockFlow.tradeData,
+        signingPayload: mockFlow.signingPayload,
+        signature,
+        submitResponse,
+      });
+
+      return submitResponse;
+    },
     onSuccess: async () => {
       await queryClient.invalidateQueries({
-        queryKey: ["trade", "orders"],
+        queryKey: ["trade", "orders", "chain"],
+      });
+    },
+    onError: (error) => {
+      useTradeLogStore.getState().recordError({
+        message:
+          error instanceof Error ? error.message : "Failed to submit trade.",
       });
     },
   });

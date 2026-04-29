@@ -16,8 +16,19 @@ export async function POST(request: Request) {
       );
     }
 
+    const operation = body.payload.operation;
+
+    if (!operation) {
+      return NextResponse.json(
+        {
+          message: "Missing operation.",
+        },
+        { status: 400 },
+      );
+    }
+
     const signatureCheck = await mockVerifySignature({
-      account: body.payload.operation.account,
+      account: operation.account,
       payload: body.payload,
       signature: body.signature,
     });
@@ -28,17 +39,6 @@ export async function POST(request: Request) {
           message: "Invalid mock signature.",
         },
         { status: 401 },
-      );
-    }
-
-    const { operation } = body.payload;
-
-    if (!operation) {
-      return NextResponse.json(
-        {
-          message: "Missing operation.",
-        },
-        { status: 400 },
       );
     }
 

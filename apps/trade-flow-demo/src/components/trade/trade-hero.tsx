@@ -1,73 +1,73 @@
-import { Activity, ArrowRightLeft, ShieldCheck } from "lucide-react";
+"use client";
+
+import { Activity, CircleAlert, Network, Wallet } from "lucide-react";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { useAccount, useChainId } from "wagmi";
+
+import { tradingStateChainId } from "@/lib/contracts/trade-order-book";
 
 export function TradeHero() {
+  const { address, isConnected } = useAccount();
+  const chainId = useChainId();
+  const isExpectedChain = chainId === tradingStateChainId;
+
   return (
-    <div className="space-y-6 text-center lg:space-y-8">
-      <div className="space-y-5">
-        <div className="inline-flex items-center gap-2 rounded-full border border-[var(--line-soft)] bg-white/76 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-600 shadow-sm backdrop-blur">
-          <Activity className="size-3.5" />
-          Trade Flow Demo
+    <section className="flex flex-col gap-4 rounded-xl border bg-card p-5 shadow-sm sm:p-6 xl:flex-row xl:items-start xl:justify-between">
+      <div className="min-w-0 space-y-2">
+        <div className="inline-flex items-center gap-2 rounded-md bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">
+            <Activity className="size-3.5" />
+            Trade Flow Demo
         </div>
-
-        <div className="space-y-4">
-          <h1 className="mx-auto max-w-3xl text-4xl font-semibold tracking-tight text-slate-800 sm:text-5xl xl:text-[3.35rem] xl:leading-[1.06]">
-            Build, sign, and submit a mock limit order like a real trading
-            client.
+        <div>
+          <h1 className="text-lg font-semibold text-foreground sm:text-xl">
+            Trade Flow Demo
           </h1>
-
-          <p className="mx-auto max-w-2xl text-base leading-8 text-slate-600 sm:text-lg">
-            This panel stops pretending that trade submission equals final
-            execution. You validate inputs, encode business params, prepare an
-            operation, sign it, and hand off the order to the backend.
+          <p className="mt-1 text-sm text-muted-foreground">
+            Submit, sign, and monitor limit orders from one compact dashboard.
           </p>
         </div>
+        <div className="flex flex-wrap gap-2">
+          <HeaderStat
+            icon={<Wallet className="size-3.5" />}
+            label="Wallet"
+            value={isConnected ? "Connected" : "Disconnected"}
+          />
+          <HeaderStat
+            icon={<Network className="size-3.5" />}
+            label="Chain"
+            value={chainId ? String(chainId) : "-"}
+          />
+          <HeaderStat
+            icon={<CircleAlert className="size-3.5" />}
+            label="Status"
+            value={isExpectedChain ? "Ready" : "Wrong network"}
+          />
+        </div>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-3">
-        <FeatureCard
-          icon={<ArrowRightLeft className="size-4" />}
-          title="Operation First"
-          description="Business params are encoded before signing and submission."
-          tone="trade-tint-peach"
-        />
-
-        <FeatureCard
-          icon={<ShieldCheck className="size-4" />}
-          title="Signature Separated"
-          description="The signer produces an intent proof, not the final order state."
-          tone="trade-tint-mint"
-        />
-
-        <FeatureCard
-          icon={<Activity className="size-4" />}
-          title="State Keeps Moving"
-          description="Mutation success is only the start. Matching and fills arrive later."
-          tone="trade-tint-sky"
-        />
+      <div className="flex min-w-0 flex-col items-start gap-2 xl:items-end">
+        <ConnectButton />
+        <div className="truncate text-xs text-muted-foreground">
+          {isConnected && address
+            ? `${address.slice(0, 6)}...${address.slice(-4)}`
+            : "No wallet connected"}
+        </div>
       </div>
-    </div>
+    </section>
   );
 }
 
-type FeatureCardProps = {
+function HeaderStat(props: {
   icon: React.ReactNode;
-  title: string;
-  description: string;
-  tone: string;
-};
-
-function FeatureCard({ icon, title, description, tone }: FeatureCardProps) {
+  label: string;
+  value: string;
+  intent?: "ready" | "warning";
+}) {
   return (
-    <div
-      className={`trade-soft-card ${tone} rounded-[1.6rem] p-5 text-left backdrop-blur`}
-    >
-      <div className="mb-3 inline-flex rounded-2xl border border-white/45 bg-white/70 p-2.5 text-slate-700 shadow-sm">
-        {icon}
-      </div>
-
-      <div className="text-sm font-semibold text-slate-800">{title}</div>
-
-      <p className="mt-2 text-sm leading-6 text-slate-600">{description}</p>
+    <div className="inline-flex items-center gap-2 rounded-md border bg-background px-3 py-1.5 text-xs text-muted-foreground">
+      <span className="text-primary">{props.icon}</span>
+      <span>{props.label}</span>
+      <span className="font-medium text-foreground">{props.value}</span>
     </div>
   );
 }

@@ -2,6 +2,13 @@
 
 import { useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { usePublicClient, useWatchContractEvent } from "wagmi";
+
+import {
+  createChainOrderEvent,
+  mapStoredOrderToUiOrder,
+  tradeOrderBookContract,
+} from "@/lib/contracts/trade-order-book";
 import type { Order, OrderEvent } from "@/lib/trade/types";
 import type { OrdersResponse } from "./useOrders";
 import { useTradeLogStore } from "./useTradeLogStore";
@@ -23,56 +30,81 @@ export function useOrderEvents(params?: {
   enabled?: boolean;
 }) {
   const queryClient = useQueryClient();
+  const publicClient = usePublicClient({
+    chainId: tradeOrderBookContract.chainId,
+  });
   const enabled = params?.enabled ?? true;
+
+  useWatchContractEvent({
+    ...tradeOrderBookContract,
+    enabled,
+    onLogs: async (logs) => {
+      if (!publicClient) {
+        return;
+      }
+
+      for (const log of logs) {
+        const orderId = log.args.orderId;
+
+        if (!orderId) {
+          continue;
+        }
+
+        const storedOrder = await publicClient.readContract({
+          ...tradeOrderBookContract,
+          functionName: "getOrder",
+          args: [orderId],
+        });
+
+        const nextOrder = mapStoredOrderToUiOrder({
+          orderId,
+          storedOrder,
+          txHash: log.transactionHash,
+        });
+
+        const nextEvent = createChainOrderEvent({
+          eventName: log.eventName,
+          order: nextOrder,
+        });
+
+        useTradeLogStore.getState().recordOrderEvent(nextEvent);
+
+        queryClient.setQueryData<OrdersResponse>(
+          ["trade", "orders", "chain"],
+          (current) => {
+            if (!current) {
+              return {
+                orders: [nextOrder],
+                total: 1,
+                receivedAt: Date.now(),
+              };
+            }
+
+            const nextOrders = upsertOrder(current.orders, nextOrder);
+
+            return {
+              ...current,
+              orders: nextOrders,
+              total: nextOrders.length,
+              receivedAt: Date.now(),
+            };
+          },
+        );
+
+        params?.onEvent?.(nextEvent);
+      }
+    },
+  });
 
   useEffect(() => {
     if (!enabled) {
       return;
     }
 
-    const eventSource = new EventSource("/api/trade/stream");
-
-    function handleOrderEvent(event: MessageEvent) {
-      const parsed = JSON.parse(event.data) as OrderEvent;
-
-      useTradeLogStore.getState().recordOrderEvent(parsed);
-
-      queryClient.setQueryData<OrdersResponse>(
-        ["trade", "orders"],
-        (current) => {
-          if (!current) {
-            return {
-              orders: [parsed.order],
-              total: 1,
-              receivedAt: Date.now(),
-            };
-          }
-
-          const nextOrders = upsertOrder(current.orders, parsed.order);
-
-          return {
-            ...current,
-            orders: nextOrders,
-            total: nextOrders.length,
-            receivedAt: Date.now(),
-          };
-        },
-      );
-
-      params?.onEvent?.(parsed);
-    }
-
-    eventSource.addEventListener("order.created", handleOrderEvent);
-    eventSource.addEventListener("order.updated", handleOrderEvent);
-
-    eventSource.onerror = () => {
-      console.error("[SSE] Order event stream error.");
-    };
-
     return () => {
-      eventSource.removeEventListener("order.created", handleOrderEvent);
-      eventSource.removeEventListener("order.updated", handleOrderEvent);
-      eventSource.close();
+      void queryClient.invalidateQueries({
+        queryKey: ["trade", "orders", "chain"],
+      });
     };
-  }, [enabled, params, queryClient]);
+  }, [enabled, queryClient]);
 }
