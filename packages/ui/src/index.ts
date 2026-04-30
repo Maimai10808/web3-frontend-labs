@@ -27,3 +27,5 @@ export * from "./components/dropdown-menu";
 export * from "./components/field";
 
 export * from "./components/input-group";
+
+export { LanguageSwitcher } from "./components/shared/language-switcher";

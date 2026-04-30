@@ -1,0 +1,13 @@
+{
+  "name": "@web3-frontend-labs/i18n",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./config": "./src/config.ts",
+    "./routing": "./src/routing.ts",
+    "./navigation": "./src/navigation.ts",
+    "./messages/en": "./src/messages/en.json",
+    "./messages/zh-CN": "./src/messages/zh-CN.json"
+  }
+}

@@ -13,10 +13,7 @@ import {
 } from "wagmi";
 import { parseEther } from "viem";
 import { EvmAdapter } from "@/lib/multichain/adapters/evm-adapter";
-import {
-  type WalletName,
-  WalletReadyState,
-} from "@solana/wallet-adapter-base";
+import { type WalletName, WalletReadyState } from "@solana/wallet-adapter-base";
 import { useWallet, useConnection } from "@solana/wallet-adapter-react";
 import { SolanaAdapter } from "@/lib/multichain/adapters/solana-adapter";
 import { useBtcWallet } from "./use-btc-wallet";
@@ -96,9 +93,8 @@ function getInjectedEthereumProviders(): InjectedEthereumProvider[] {
     return [];
   }
 
-  const ethereum = (
-    window as Window & { ethereum?: InjectedEthereumProvider }
-  ).ethereum;
+  const ethereum = (window as Window & { ethereum?: InjectedEthereumProvider })
+    .ethereum;
   if (!ethereum) {
     return [];
   }
@@ -215,9 +211,7 @@ function resolveEvmConnector(
 
     return {
       connector:
-        getByIdOrName("metamask") ??
-        getByIdOrName("injected") ??
-        connectors[0],
+        getByIdOrName("metamask") ?? getByIdOrName("injected") ?? connectors[0],
       walletName: "MetaMask",
     };
   }
@@ -358,7 +352,12 @@ export function useWalletAccount() {
             })),
           );
           debugUnified("current adapter name", wallet?.adapter.name);
-          debugUnified("connected", connected, "publicKey", publicKey?.toBase58());
+          debugUnified(
+            "connected",
+            connected,
+            "publicKey",
+            publicKey?.toBase58(),
+          );
 
           if (!selectedSolanaWalletId) {
             throw new Error("Select a Solana wallet before connecting");
@@ -372,7 +371,9 @@ export function useWalletAccount() {
               );
             }
             const rawResult = await provider.connect();
-            const address = normalizeSolanaAddress(rawResult) ?? normalizeSolanaAddress(provider.publicKey);
+            const address =
+              normalizeSolanaAddress(rawResult) ??
+              normalizeSolanaAddress(provider.publicKey);
             if (!address) {
               throw new Error("publicKey missing after OKX Solana connect");
             }
@@ -393,9 +394,13 @@ export function useWalletAccount() {
               );
             }
             const rawResult = await provider.connect();
-            const address = normalizeSolanaAddress(rawResult) ?? normalizeSolanaAddress(provider.publicKey);
+            const address =
+              normalizeSolanaAddress(rawResult) ??
+              normalizeSolanaAddress(provider.publicKey);
             if (!address) {
-              throw new Error("publicKey missing after MetaMask Solana connect");
+              throw new Error(
+                "publicKey missing after MetaMask Solana connect",
+              );
             }
             return {
               ecosystem: "solana",
@@ -415,7 +420,9 @@ export function useWalletAccount() {
           );
 
           if (!targetWallet) {
-            throw new Error(`${targetWalletName} wallet adapter is not configured.`);
+            throw new Error(
+              `${targetWalletName} wallet adapter is not configured.`,
+            );
           }
 
           if (
@@ -580,7 +587,10 @@ export function useWalletAccount() {
     selectedEvmWalletId,
     selectEvmWallet: setSelectedEvmWalletId,
     connectEvmWith: async (walletId: EvmWalletId): Promise<WalletAccount> => {
-      const { connector, walletName } = resolveEvmConnector(walletId, connectors);
+      const { connector, walletName } = resolveEvmConnector(
+        walletId,
+        connectors,
+      );
       if (account.isConnected) {
         debugUnified("disconnect current evm wallet before reconnect", {
           currentConnector: account.connector?.name,

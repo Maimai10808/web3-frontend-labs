@@ -36,5 +36,8 @@
     "turbo": "^2.9.6",
     "typescript": "^5.9.3"
   },
-  "packageManager": "npm@11.5.1"
+  "packageManager": "npm@11.5.1",
+  "dependencies": {
+    "next-intl": "^4.11.0"
+  }
 }
