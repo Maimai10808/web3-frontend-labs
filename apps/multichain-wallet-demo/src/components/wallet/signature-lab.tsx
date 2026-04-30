@@ -90,9 +90,33 @@ export function SignatureLab() {
         ) : null}
       </div>
 
-      <pre className="overflow-auto rounded-xl bg-slate-950 p-3 text-xs text-slate-300">
-        {JSON.stringify(result ?? error ?? { status: "idle" }, null, 2)}
-      </pre>
+      <div className="overflow-auto rounded-xl bg-slate-950 p-3 text-xs text-slate-300">
+        {result ? (
+          <div className="space-y-2">
+            <div>
+              <span className="text-slate-500">wallet</span>: {result.walletName}
+            </div>
+            <div>
+              <span className="text-slate-500">address</span>: {result.address}
+            </div>
+            <div>
+              <span className="text-slate-500">message</span>:{" "}
+              {result.payloadPreview}
+            </div>
+            <div className="break-all">
+              <span className="text-slate-500">signature</span>:{" "}
+              {result.signature}
+            </div>
+          </div>
+        ) : error ? (
+          <div className="space-y-2">
+            <div className="text-rose-300">Signature failed</div>
+            <div className="break-all">{error.message}</div>
+          </div>
+        ) : (
+          <div className="text-slate-500">No signature result yet.</div>
+        )}
+      </div>
     </section>
   );
 }

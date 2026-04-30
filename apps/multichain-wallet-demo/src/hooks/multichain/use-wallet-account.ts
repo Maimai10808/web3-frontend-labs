@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   useAccount,
+  type Connector,
   useConnect,
   useDisconnect,
   useSendTransaction,
@@ -12,7 +13,10 @@ import {
 } from "wagmi";
 import { parseEther } from "viem";
 import { EvmAdapter } from "@/lib/multichain/adapters/evm-adapter";
-import type { WalletName } from "@solana/wallet-adapter-base";
+import {
+  type WalletName,
+  WalletReadyState,
+} from "@solana/wallet-adapter-base";
 import { useWallet, useConnection } from "@solana/wallet-adapter-react";
 import { SolanaAdapter } from "@/lib/multichain/adapters/solana-adapter";
 import { useBtcWallet } from "./use-btc-wallet";
@@ -32,8 +36,239 @@ function debugUnified(...args: unknown[]) {
   }
 }
 
+type EvmWalletId =
+  | "metamask"
+  | "okx"
+  | "coinbase"
+  | "walletconnect"
+  | "injected";
+
+type EvmWalletOption = {
+  id: EvmWalletId;
+  label: string;
+};
+
+type SolanaWalletId = "phantom" | "solflare" | "okx" | "metamask";
+
+type SolanaWalletOption = {
+  id: SolanaWalletId;
+  label: string;
+};
+
+type InjectedEthereumProvider = {
+  isMetaMask?: boolean;
+  isOkxWallet?: boolean;
+  isOKExWallet?: boolean;
+  name?: string;
+  providers?: InjectedEthereumProvider[];
+};
+
+type SolanaPublicKeyLike = {
+  toBase58?: () => string;
+  toString?: () => string;
+};
+
+type SolanaInjectedProvider = {
+  isMetaMask?: boolean;
+  publicKey?: SolanaPublicKeyLike | string | null;
+  connect?: () => Promise<unknown>;
+  disconnect?: () => Promise<void>;
+};
+
+const evmWalletOptions: EvmWalletOption[] = [
+  { id: "metamask", label: "MetaMask" },
+  { id: "okx", label: "OKX Wallet" },
+  { id: "coinbase", label: "Coinbase Wallet" },
+  { id: "walletconnect", label: "WalletConnect" },
+  { id: "injected", label: "Injected Wallet" },
+];
+
+const solanaWalletOptions: SolanaWalletOption[] = [
+  { id: "phantom", label: "Phantom" },
+  { id: "solflare", label: "Solflare" },
+  { id: "okx", label: "OKX Wallet" },
+  { id: "metamask", label: "MetaMask" },
+];
+
+function getInjectedEthereumProviders(): InjectedEthereumProvider[] {
+  if (typeof window === "undefined") {
+    return [];
+  }
+
+  const ethereum = (
+    window as Window & { ethereum?: InjectedEthereumProvider }
+  ).ethereum;
+  if (!ethereum) {
+    return [];
+  }
+
+  return ethereum.providers?.length ? ethereum.providers : [ethereum];
+}
+
+function hasMetaMaskExtension() {
+  return getInjectedEthereumProviders().some((provider) => provider.isMetaMask);
+}
+
+function hasOkxExtension() {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  const windowWithOkx = window as Window & {
+    okxwallet?: {
+      ethereum?: InjectedEthereumProvider;
+    };
+  };
+
+  if (windowWithOkx.okxwallet?.ethereum || windowWithOkx.okxwallet) {
+    return true;
+  }
+
+  return getInjectedEthereumProviders().some((provider) => {
+    const providerName = provider.name?.toLowerCase() ?? "";
+    return (
+      provider.isOkxWallet ||
+      provider.isOKExWallet ||
+      providerName.includes("okx") ||
+      providerName.includes("okex")
+    );
+  });
+}
+
+function getOkxSolanaProvider(): SolanaInjectedProvider | undefined {
+  if (typeof window === "undefined") {
+    return undefined;
+  }
+
+  return (
+    window as Window & {
+      okxwallet?: { solana?: SolanaInjectedProvider };
+    }
+  ).okxwallet?.solana;
+}
+
+function getMetaMaskSolanaProvider(): SolanaInjectedProvider | undefined {
+  if (typeof window === "undefined") {
+    return undefined;
+  }
+
+  const customWindow = window as Window & {
+    metamask?: { solana?: SolanaInjectedProvider };
+    solana?: SolanaInjectedProvider;
+  };
+
+  if (customWindow.metamask?.solana) {
+    return customWindow.metamask.solana;
+  }
+
+  if (customWindow.solana?.isMetaMask) {
+    return customWindow.solana;
+  }
+
+  return undefined;
+}
+
+function normalizeSolanaAddress(value: unknown): string | undefined {
+  if (typeof value === "string") {
+    return value;
+  }
+
+  if (value && typeof value === "object") {
+    const candidate = value as {
+      publicKey?: SolanaPublicKeyLike | string | null;
+      toBase58?: () => string;
+      toString?: () => string;
+    };
+
+    if (candidate.publicKey) {
+      return normalizeSolanaAddress(candidate.publicKey);
+    }
+
+    if (typeof candidate.toBase58 === "function") {
+      return candidate.toBase58();
+    }
+
+    if (typeof candidate.toString === "function") {
+      const next = candidate.toString();
+      return next === "[object Object]" ? undefined : next;
+    }
+  }
+
+  return undefined;
+}
+
+function resolveEvmConnector(
+  walletId: EvmWalletId,
+  connectors: readonly Connector[],
+): { connector: Connector; walletName: string } {
+  const getByIdOrName = (pattern: string) =>
+    connectors.find((connector) => {
+      const haystack = `${connector.id} ${connector.name}`.toLowerCase();
+      return haystack.includes(pattern);
+    });
+
+  if (walletId === "metamask") {
+    if (!hasMetaMaskExtension()) {
+      throw new Error("MetaMask extension not detected.");
+    }
+
+    return {
+      connector:
+        getByIdOrName("metamask") ??
+        getByIdOrName("injected") ??
+        connectors[0],
+      walletName: "MetaMask",
+    };
+  }
+
+  if (walletId === "okx") {
+    if (!hasOkxExtension()) {
+      throw new Error("OKX Wallet extension not detected.");
+    }
+
+    return {
+      connector:
+        getByIdOrName("okx") ?? getByIdOrName("injected") ?? connectors[0],
+      walletName: "OKX Wallet",
+    };
+  }
+
+  if (walletId === "coinbase") {
+    const connector = getByIdOrName("coinbase");
+    if (!connector) {
+      throw new Error("Coinbase Wallet connector is not configured.");
+    }
+    return { connector, walletName: "Coinbase Wallet" };
+  }
+
+  if (walletId === "walletconnect") {
+    if (!process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID) {
+      throw new Error(
+        "WalletConnect projectId is missing. Set NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID.",
+      );
+    }
+
+    const connector = getByIdOrName("walletconnect");
+    if (!connector) {
+      throw new Error("WalletConnect connector is not configured.");
+    }
+    return { connector, walletName: "WalletConnect" };
+  }
+
+  const connector = getByIdOrName("injected");
+  if (!connector) {
+    throw new Error("Injected wallet connector is not configured.");
+  }
+
+  return { connector, walletName: "Injected Wallet" };
+}
+
 export function useWalletAccount() {
   const { ecosystem } = useActiveEcosystem();
+  const [selectedEvmWalletId, setSelectedEvmWalletId] =
+    useState<EvmWalletId | null>(null);
+  const [selectedSolanaWalletId, setSelectedSolanaWalletId] =
+    useState<SolanaWalletId | null>(null);
 
   const account = useAccount();
   const { connectors, connectAsync } = useConnect();
@@ -58,7 +293,6 @@ export function useWalletAccount() {
     wallet,
     wallets,
     select,
-    connect,
     disconnect,
     signMessage,
     sendTransaction,
@@ -113,22 +347,106 @@ export function useWalletAccount() {
     () =>
       new SolanaAdapter({
         connectWallet: async () => {
-          if (!wallet) {
+          debugUnified("selectedSolanaWalletName", selectedSolanaWalletId);
+          debugUnified(
+            "available wallet adapter names",
+            wallets.map((item) => ({
+              name: item.adapter.name,
+              readyState: item.readyState,
+            })),
+          );
+          debugUnified("current adapter name", wallet?.adapter.name);
+          debugUnified("connected", connected, "publicKey", publicKey?.toBase58());
+
+          if (!selectedSolanaWalletId) {
             throw new Error("Select a Solana wallet before connecting");
           }
-          await connect();
 
-          const address = wallet.adapter.publicKey?.toBase58();
-          if (!address || !wallet.adapter.connected) {
-            throw new Error("Failed to get Solana account after connect");
+          if (selectedSolanaWalletId === "okx") {
+            const provider = getOkxSolanaProvider();
+            if (!provider?.connect) {
+              throw new Error(
+                "OKX Solana provider was not detected. Install OKX Wallet with Solana support.",
+              );
+            }
+            const rawResult = await provider.connect();
+            const address = normalizeSolanaAddress(rawResult) ?? normalizeSolanaAddress(provider.publicKey);
+            if (!address) {
+              throw new Error("publicKey missing after OKX Solana connect");
+            }
+            return {
+              ecosystem: "solana",
+              address,
+              displayAddress: `${address.slice(0, 6)}...${address.slice(-4)}`,
+              providerName: "OKX Wallet",
+              networkId: "solana:devnet",
+            };
+          }
+
+          if (selectedSolanaWalletId === "metamask") {
+            const provider = getMetaMaskSolanaProvider();
+            if (!provider?.connect) {
+              throw new Error(
+                "MetaMask Solana provider was not detected. Install the Solana-compatible MetaMask wallet feature or use Phantom/OKX/Solflare.",
+              );
+            }
+            const rawResult = await provider.connect();
+            const address = normalizeSolanaAddress(rawResult) ?? normalizeSolanaAddress(provider.publicKey);
+            if (!address) {
+              throw new Error("publicKey missing after MetaMask Solana connect");
+            }
+            return {
+              ecosystem: "solana",
+              address,
+              displayAddress: `${address.slice(0, 6)}...${address.slice(-4)}`,
+              providerName: "MetaMask",
+              networkId: "solana:devnet",
+            };
+          }
+
+          const targetWalletName =
+            selectedSolanaWalletId === "phantom"
+              ? ("Phantom" as WalletName)
+              : ("Solflare" as WalletName);
+          const targetWallet = wallets.find(
+            (item) => item.adapter.name === targetWalletName,
+          );
+
+          if (!targetWallet) {
+            throw new Error(`${targetWalletName} wallet adapter is not configured.`);
+          }
+
+          if (
+            targetWallet.readyState !== WalletReadyState.Installed &&
+            targetWallet.readyState !== WalletReadyState.Loadable
+          ) {
+            throw new Error(
+              `${targetWalletName} wallet not detected or not ready.`,
+            );
+          }
+
+          if (wallet?.adapter.name !== targetWalletName) {
+            select(targetWalletName);
+          }
+
+          try {
+            await targetWallet.adapter.connect();
+          } catch (error) {
+            debugUnified("raw error", error);
+            throw error;
+          }
+
+          const address = targetWallet.adapter.publicKey?.toBase58();
+          if (!address) {
+            throw new Error("publicKey missing after connect");
           }
 
           return {
             ecosystem: "solana",
             address,
             displayAddress: `${address.slice(0, 6)}...${address.slice(-4)}`,
-            providerName: wallet.adapter.name,
-            networkId: "solana-devnet",
+            providerName: targetWallet.adapter.name,
+            networkId: "solana:devnet",
           };
         },
         disconnectWallet: () => disconnect(),
@@ -141,9 +459,11 @@ export function useWalletAccount() {
       }),
     [
       wallet,
+      wallets,
       publicKey,
       connected,
-      connect,
+      selectedSolanaWalletId,
+      select,
       disconnect,
       signMessage,
       sendTransaction,
@@ -243,15 +563,19 @@ export function useWalletAccount() {
     adapter,
     ecosystem,
     currentConnection,
-    evmConnectors: connectors,
-    connectEvmWith: async (connectorId: string): Promise<WalletAccount> => {
-      const target = connectors.find(
-        (connector) => connector.id === connectorId,
-      );
-      if (!target) {
-        throw new Error(`Connector not found: ${connectorId}`);
+    evmWalletOptions,
+    selectedEvmWalletId,
+    selectEvmWallet: setSelectedEvmWalletId,
+    connectEvmWith: async (walletId: EvmWalletId): Promise<WalletAccount> => {
+      const { connector, walletName } = resolveEvmConnector(walletId, connectors);
+      if (account.isConnected) {
+        debugUnified("disconnect current evm wallet before reconnect", {
+          currentConnector: account.connector?.name,
+          nextWallet: walletName,
+        });
+        await disconnectAsync();
       }
-      const result = await connectAsync({ connector: target });
+      const result = await connectAsync({ connector });
       const address = result.accounts[0];
       if (!address) {
         throw new Error("Failed to get EVM account after connect");
@@ -261,20 +585,15 @@ export function useWalletAccount() {
         ecosystem: "evm",
         address,
         displayAddress: `${address.slice(0, 6)}...${address.slice(-4)}`,
-        providerName: target.name,
+        providerName: walletName,
         chainId: result.chainId,
       };
     },
     evmStatus: account.status,
     evmIsConnected: account.isConnected,
-    solanaWallets: wallets.map((item) => ({
-      label: item.adapter.name.toString(),
-      value: item.adapter.name,
-    })),
-    solanaWalletName: wallet?.adapter.name ?? null,
-    selectSolanaWallet: (walletName: WalletName) => {
-      select(walletName);
-    },
+    solanaWalletOptions,
+    selectedSolanaWalletId,
+    selectSolanaWallet: setSelectedSolanaWalletId,
     btcWalletName,
     btcAddress,
     selectBtcWallet,

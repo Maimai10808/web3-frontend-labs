@@ -1,10 +1,14 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
+import { create } from "zustand";
 
 import type { WalletAccount, WalletAdapter } from "@/lib/multichain/types";
 import { SeiAdapter } from "@/lib/multichain/adapters/sei-adapter";
-import { seiChainConfiguration } from "@/lib/multichain/sei/config";
+import {
+  getSeiPacificChainInfo,
+  seiChainConfiguration,
+} from "@/lib/multichain/sei/config";
 
 type SeiKey = {
   bech32Address: string;
@@ -15,6 +19,9 @@ type SeiOfflineSigner = {
 };
 
 type SeiWindowProvider = {
+  experimentalSuggestChain?: (
+    chainInfo: ReturnType<typeof getSeiPacificChainInfo>,
+  ) => Promise<void>;
   enable?: (chainId: string) => Promise<void>;
   getKey?: (chainId: string) => Promise<SeiKey>;
   getOfflineSigner?: (chainId: string) => SeiOfflineSigner;
@@ -42,6 +49,13 @@ type SeiWalletSession = {
 
 type SupportedSeiWallet = "compass" | "keplr" | "leap";
 
+type SeiWalletStore = {
+  session: SeiWalletSession | null;
+  selectedWallet: SupportedSeiWallet | null;
+  setSession: (session: SeiWalletSession | null) => void;
+  setSelectedWallet: (wallet: SupportedSeiWallet | null) => void;
+};
+
 declare global {
   interface Window {
     compass?: SeiWindowProvider;
@@ -56,6 +70,13 @@ function debugSei(...args: unknown[]) {
     console.debug("[sei-wallet]", ...args);
   }
 }
+
+const useSeiWalletStore = create<SeiWalletStore>((set) => ({
+  session: null,
+  selectedWallet: null,
+  setSession: (session) => set({ session }),
+  setSelectedWallet: (selectedWallet) => set({ selectedWallet }),
+}));
 
 function getDetectedSeiWallets() {
   if (typeof window === "undefined") {
@@ -137,10 +158,13 @@ export function useSeiWallet(): {
   selectedWallet: SupportedSeiWallet | null;
   selectWallet: (wallet: SupportedSeiWallet) => void;
 } {
-  const [session, setSession] = useState<SeiWalletSession | null>(null);
-  const [selectedWallet, setSelectedWallet] =
-    useState<SupportedSeiWallet | null>(null);
-  const detectedWallets = getDetectedSeiWallets();
+  const session = useSeiWalletStore((state) => state.session);
+  const selectedWallet = useSeiWalletStore((state) => state.selectedWallet);
+  const setSession = useSeiWalletStore((state) => state.setSession);
+  const setSelectedWallet = useSeiWalletStore(
+    (state) => state.setSelectedWallet,
+  );
+  const detectedWallets = useMemo(() => getDetectedSeiWallets(), []);
 
   const connectWallet = useCallback(async () => {
     debugSei("selected wallet", selectedWallet);
@@ -164,7 +188,30 @@ export function useSeiWallet(): {
     }
 
     const { provider, walletName } = selectedProvider;
-    await provider.enable?.(seiChainConfiguration.chainId);
+    if (typeof provider.experimentalSuggestChain === "function") {
+      try {
+        await provider.experimentalSuggestChain(getSeiPacificChainInfo());
+      } catch (error) {
+        debugSei("suggest chain failed", error);
+        throw new Error(
+          `Failed to suggest Sei chain to ${walletName}: ${
+            error instanceof Error ? error.message : "unknown error"
+          }`,
+        );
+      }
+    }
+
+    try {
+      await provider.enable?.(seiChainConfiguration.chainId);
+    } catch (error) {
+      debugSei("enable failed", error);
+      throw new Error(
+        `Failed to enable ${walletName} for pacific-1: ${
+          error instanceof Error ? error.message : "unknown error"
+        }`,
+      );
+    }
+
     const address = await getAddressFromProvider(provider);
     debugSei("normalized account", {
       walletName,
@@ -186,11 +233,11 @@ export function useSeiWallet(): {
       providerName: walletName,
       networkId: seiChainConfiguration.chainId,
     } satisfies WalletAccount;
-  }, [detectedWallets, selectedWallet]);
+  }, [detectedWallets, selectedWallet, setSession]);
 
   const disconnectWallet = useCallback(() => {
     setSession(null);
-  }, []);
+  }, [setSession]);
 
   const adapter = useMemo<WalletAdapter>(
     () =>

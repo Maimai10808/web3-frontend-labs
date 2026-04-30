@@ -44,6 +44,24 @@ function normalizeBtcAddress(result: BtcWalletConnectResult) {
   return undefined;
 }
 
+function normalizeSignatureResult(result: unknown) {
+  if (typeof result === "string") {
+    return result;
+  }
+
+  if (result && typeof result === "object") {
+    if ("signature" in result && typeof result.signature === "string") {
+      return result.signature;
+    }
+
+    if ("result" in result && typeof result.result === "string") {
+      return result.result;
+    }
+  }
+
+  return undefined;
+}
+
 export class OkxBtcWallet implements BtcInjectedWallet {
   name = "OKX BTC";
 
@@ -79,7 +97,81 @@ export class OkxBtcWallet implements BtcInjectedWallet {
       throw new Error("OKX BTC wallet not installed");
     }
 
-    return provider.signMessage(message);
+    debugBtc("provider exists", true);
+
+    if (provider.signMessage) {
+      try {
+        const rawSignature = await provider.signMessage(message);
+        debugBtc("raw signature result", rawSignature);
+        const signature = normalizeSignatureResult(rawSignature);
+        if (signature) {
+          return signature;
+        }
+      } catch {
+        // Fall through to alternative signatures below.
+      }
+
+      try {
+        const accountsResult = provider.getAccounts
+          ? await provider.getAccounts()
+          : provider.requestAccounts
+            ? await provider.requestAccounts()
+            : provider.connect
+              ? await provider.connect()
+              : undefined;
+        const address = normalizeBtcAddress(accountsResult);
+        if (address) {
+          const rawSignature = await provider.signMessage(address, message);
+          debugBtc("raw signature result", rawSignature);
+          const signature = normalizeSignatureResult(rawSignature);
+          if (signature) {
+            return signature;
+          }
+        }
+      } catch {
+        // Fall through to request() variants below.
+      }
+    }
+
+    if (provider.request) {
+      try {
+        const rawSignature = await provider.request({
+          method: "signMessage",
+          params: [message],
+        });
+        debugBtc("raw signature result", rawSignature);
+        const signature = normalizeSignatureResult(rawSignature);
+        if (signature) {
+          return signature;
+        }
+      } catch {
+        // Try address + message variant next.
+      }
+
+      const accountsResult = provider.getAccounts
+        ? await provider.getAccounts()
+        : provider.requestAccounts
+          ? await provider.requestAccounts()
+          : provider.connect
+            ? await provider.connect()
+            : undefined;
+      const address = normalizeBtcAddress(accountsResult);
+      if (address) {
+        const rawSignature = await provider.request({
+          method: "signMessage",
+          params: [address, message],
+        });
+        debugBtc("raw signature result", rawSignature);
+        const signature = normalizeSignatureResult(rawSignature);
+        if (signature) {
+          return signature;
+        }
+      }
+    }
+
+    throw new Error(
+      "Current BTC wallet does not support message signing in this adapter",
+    );
   }
 
   async sendBitcoin(to: string, amountSats: number): Promise<string> {

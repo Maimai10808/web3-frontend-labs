@@ -24,7 +24,8 @@ export const config = createConfig({
       appName: "multichain-wallet-demo",
     }),
     walletConnect({
-      projectId: "demo-project-id",
+      projectId:
+        process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID ?? "demo-project-id",
     }),
   ],
   transports: {
@@ -141,6 +142,7 @@ export class EvmAdapter implements WalletAdapter {
         const signature = await this.deps.personalSign(input.message);
         return {
           kind: input.kind,
+          walletName: account.providerName,
           signature,
           address: account.address,
           payloadPreview: input.message,
@@ -151,6 +153,7 @@ export class EvmAdapter implements WalletAdapter {
         const signature = await this.deps.signTypedData(input.typedData);
         return {
           kind: input.kind,
+          walletName: account.providerName,
           signature,
           address: account.address,
           payloadPreview: JSON.stringify(input.typedData.message),

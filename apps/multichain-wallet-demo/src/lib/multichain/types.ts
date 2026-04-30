@@ -73,6 +73,7 @@ export type SignIntentInput = {
 
 export type SignatureResult = {
   kind: SignatureKind;
+  walletName: string;
   signature: string;
   address: string;
   payloadPreview: string;

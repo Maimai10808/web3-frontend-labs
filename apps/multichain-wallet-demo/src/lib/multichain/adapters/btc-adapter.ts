@@ -12,6 +12,12 @@ import { normalizeMultiChainError } from "../errors";
 import { getExplorerTxUrl } from "../explorer";
 import type { BtcInjectedWallet } from "../btc/types";
 
+function debugBtc(...args: unknown[]) {
+  if (process.env.NODE_ENV === "development") {
+    console.debug("[btc-wallet]", ...args);
+  }
+}
+
 type BtcAdapterDeps = {
   wallet: BtcInjectedWallet | null;
   setWallet: (wallet: BtcInjectedWallet | null) => void;
@@ -99,11 +105,14 @@ export class BtcAdapter implements WalletAdapter {
       if (!account || !this.deps.wallet) {
         throw new Error("BTC wallet not connected");
       }
+      debugBtc("selectedBtcWallet", this.deps.wallet.name);
+      debugBtc("connected account", account.address);
 
       const signature = await this.deps.wallet.signMessage(input.message);
 
       return {
         kind: input.kind === "btc_psbt" ? "btc_psbt" : "btc_message",
+        walletName: account.providerName,
         signature,
         address: account.address,
         payloadPreview: input.message,

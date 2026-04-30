@@ -105,6 +105,7 @@ export class SolanaAdapter implements WalletAdapter {
 
       return {
         kind: "solana_message",
+        walletName: account.providerName,
         signature,
         address: account.address,
         payloadPreview: input.message,

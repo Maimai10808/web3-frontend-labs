@@ -61,10 +61,12 @@ export function WalletConnectPanel() {
   const {
     adapter,
     ecosystem,
-    evmConnectors,
+    evmWalletOptions,
+    selectedEvmWalletId,
+    selectEvmWallet,
     connectEvmWith,
-    solanaWallets,
-    solanaWalletName,
+    solanaWalletOptions,
+    selectedSolanaWalletId,
     selectSolanaWallet,
     btcWalletName,
     selectBtcWallet,
@@ -90,7 +92,7 @@ export function WalletConnectPanel() {
   );
   const [isBusy, setIsBusy] = useState(false);
 
-  const handleConnect = async (connectorId?: string) => {
+  const handleConnect = async () => {
     if (!adapter) return;
 
     setIsBusy(true);
@@ -102,12 +104,18 @@ export function WalletConnectPanel() {
 
       let connectedAccount = null;
 
-      if (ecosystem === "evm" && connectorId) {
-        debugUnified("selected wallet", connectorId);
-        connectedAccount = await connectEvmWith(connectorId);
+      if (ecosystem === "evm") {
+        if (!selectedEvmWalletId) {
+          throw new Error("Select an EVM wallet first.");
+        }
+        debugUnified("selected wallet", selectedEvmWalletId);
+        connectedAccount = await connectEvmWith(selectedEvmWalletId);
       } else {
         if (ecosystem === "btc") {
           debugBtc("selected wallet", btcWalletName);
+        }
+        if (ecosystem === "solana") {
+          debugUnified("selected solana wallet", selectedSolanaWalletId);
         }
         if (ecosystem === "sei") {
           debugSei("selected wallet", selectedSeiWallet);
@@ -207,16 +215,36 @@ export function WalletConnectPanel() {
 
       {ecosystem === "evm" ? (
         <div className="grid gap-2">
-          {evmConnectors.map((connector) => (
-            <button
-              key={connector.id}
-              onClick={() => handleConnect(connector.id)}
-              disabled={isBusy}
-              className="rounded-xl bg-blue-600 px-4 py-2 text-left text-sm text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              Connect {connector.name}
-            </button>
-          ))}
+          <div className="grid gap-2 sm:grid-cols-2">
+            {evmWalletOptions.map((walletOption) => (
+              <button
+                key={walletOption.id}
+                onClick={() => selectEvmWallet(walletOption.id)}
+                disabled={isBusy}
+                className={
+                  selectedEvmWalletId === walletOption.id
+                    ? "rounded-xl bg-blue-600 px-4 py-2 text-left text-sm text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
+                    : "rounded-xl bg-slate-800 px-4 py-2 text-left text-sm text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+                }
+              >
+                {walletOption.label}
+              </button>
+            ))}
+          </div>
+
+          <button
+            onClick={() => handleConnect()}
+            disabled={isBusy || !selectedEvmWalletId}
+            className="rounded-xl bg-blue-600 px-4 py-2 text-left text-sm text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {selectedEvmWalletId
+              ? `Connect ${
+                  evmWalletOptions.find(
+                    (walletOption) => walletOption.id === selectedEvmWalletId,
+                  )?.label ?? "EVM Wallet"
+                }`
+              : "Connect EVM Wallet"}
+          </button>
         </div>
       ) : null}
 
@@ -263,17 +291,24 @@ export function WalletConnectPanel() {
             <div className="mb-1 text-xs uppercase tracking-wide text-gray-500">
               Selected Solana Wallet
             </div>
-            <div>{solanaWalletName ?? "None"}</div>
+            <div>
+              {selectedSolanaWalletId
+                ? solanaWalletOptions.find(
+                    (walletOption) =>
+                      walletOption.id === selectedSolanaWalletId,
+                  )?.label ?? "Unknown"
+                : "None"}
+            </div>
           </div>
 
           <div className="grid gap-2 sm:grid-cols-2">
-            {solanaWallets.map((walletOption) => (
+            {solanaWalletOptions.map((walletOption) => (
               <button
-                key={walletOption.label}
-                onClick={() => selectSolanaWallet(walletOption.value)}
+                key={walletOption.id}
+                onClick={() => selectSolanaWallet(walletOption.id)}
                 disabled={isBusy}
                 className={
-                  solanaWalletName === walletOption.value
+                  selectedSolanaWalletId === walletOption.id
                     ? "rounded-xl bg-violet-600 px-4 py-2 text-sm text-white transition hover:bg-violet-500 disabled:cursor-not-allowed disabled:opacity-50"
                     : "rounded-xl bg-slate-800 px-4 py-2 text-sm text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
                 }
@@ -289,21 +324,23 @@ export function WalletConnectPanel() {
 
           <button
             onClick={() => handleConnect()}
-            disabled={isBusy || !solanaWalletName}
+            disabled={isBusy || !selectedSolanaWalletId}
             className="rounded-xl bg-violet-600 px-4 py-2 text-sm text-white transition hover:bg-violet-500 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            Connect Solana Wallet
+            {selectedSolanaWalletId
+              ? `Connect ${
+                  solanaWalletOptions.find(
+                    (walletOption) =>
+                      walletOption.id === selectedSolanaWalletId,
+                  )?.label ?? "Solana Wallet"
+                }`
+              : "Connect Solana Wallet"}
           </button>
         </div>
       ) : null}
 
       {ecosystem === "sei" ? (
         <div className="grid gap-2">
-          <p className="rounded-xl border border-white/10 bg-gray-950 p-3 text-sm text-gray-300">
-            Sei wallet flow is ecosystem-specific and usually relies on a
-            dedicated wallet provider.
-          </p>
-
           <div className="rounded-xl border border-white/10 bg-gray-950 p-3 text-sm text-gray-300">
             <div className="mb-1 text-xs uppercase tracking-wide text-gray-500">
               Selected Sei Wallet
@@ -345,7 +382,13 @@ export function WalletConnectPanel() {
             disabled={isBusy || !selectedSeiWallet}
             className="rounded-xl bg-cyan-600 px-4 py-2 text-sm text-white transition hover:bg-cyan-500 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            Connect Sei Wallet
+            {selectedSeiWallet
+              ? `Connect ${
+                  seiAvailableWallets.find(
+                    (wallet) => wallet.type === selectedSeiWallet,
+                  )?.walletName ?? "Sei Wallet"
+                }`
+              : "Connect Sei Wallet"}
           </button>
         </div>
       ) : null}

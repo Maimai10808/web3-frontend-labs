@@ -44,6 +44,24 @@ function normalizeBtcAddress(result: BtcWalletConnectResult) {
   return undefined;
 }
 
+function normalizeSignatureResult(result: unknown) {
+  if (typeof result === "string") {
+    return result;
+  }
+
+  if (result && typeof result === "object") {
+    if ("signature" in result && typeof result.signature === "string") {
+      return result.signature;
+    }
+
+    if ("result" in result && typeof result.result === "string") {
+      return result.result;
+    }
+  }
+
+  return undefined;
+}
+
 export class UnisatWallet implements BtcInjectedWallet {
   name = "Unisat";
 
@@ -77,7 +95,32 @@ export class UnisatWallet implements BtcInjectedWallet {
       throw new Error("Unisat wallet not installed");
     }
 
-    return provider.signMessage(message);
+    debugBtc("provider exists", true, "connected account for signing", this.name);
+
+    if (provider.signMessage) {
+      const rawSignature = await provider.signMessage(message);
+      debugBtc("raw signature result", rawSignature);
+      const signature = normalizeSignatureResult(rawSignature);
+      if (signature) {
+        return signature;
+      }
+    }
+
+    if (provider.request) {
+      const rawSignature = await provider.request({
+        method: "signMessage",
+        params: [message],
+      });
+      debugBtc("raw signature result", rawSignature);
+      const signature = normalizeSignatureResult(rawSignature);
+      if (signature) {
+        return signature;
+      }
+    }
+
+    throw new Error(
+      "Current BTC wallet does not support message signing in this adapter",
+    );
   }
 
   async sendBitcoin(to: string, amountSats: number): Promise<string> {

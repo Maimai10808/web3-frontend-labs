@@ -116,6 +116,7 @@ export class SeiAdapter implements WalletAdapter {
 
       return {
         kind: "sei_arbitrary",
+        walletName: account.providerName,
         signature: signed.signature,
         address: account.address,
         payloadPreview: input.message,

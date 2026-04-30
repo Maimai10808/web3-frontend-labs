@@ -8,7 +8,14 @@ export type BtcWalletConnectResult =
 export type UnisatProvider = {
   requestAccounts?: () => Promise<BtcWalletConnectResult>;
   getAccounts?: () => Promise<BtcWalletConnectResult>;
-  signMessage: (message: string) => Promise<string>;
+  signMessage?: (
+    messageOrAddress: string,
+    maybeMessage?: string,
+  ) => Promise<string>;
+  request?: (args: {
+    method: string;
+    params?: unknown[];
+  }) => Promise<unknown>;
   sendBitcoin: (to: string, amountSats: number) => Promise<string>;
 };
 
@@ -16,7 +23,14 @@ export type OkxBitcoinProvider = {
   connect?: () => Promise<BtcWalletConnectResult>;
   requestAccounts?: () => Promise<BtcWalletConnectResult>;
   getAccounts?: () => Promise<BtcWalletConnectResult>;
-  signMessage: (message: string) => Promise<string>;
+  signMessage?: (
+    messageOrAddress: string,
+    maybeMessage?: string,
+  ) => Promise<string>;
+  request?: (args: {
+    method: string;
+    params?: unknown[];
+  }) => Promise<unknown>;
   sendBitcoin: (to: string, amountSats: number) => Promise<string>;
 };
 
