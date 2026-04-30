@@ -291,7 +291,7 @@ export function WalletControlPanel() {
             </p>
           </div>
 
-          <div className="sm:min-w-[220px]">
+          <div className="sm:min-w-55">
             <EcosystemSwitcher compact />
           </div>
         </div>

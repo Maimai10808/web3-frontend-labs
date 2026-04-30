@@ -42,7 +42,7 @@ export function MultichainOverview({ unifiedWallet }: MultichainOverviewProps) {
             multichain-wallet-demo
           </h1>
 
-          <p className="mt-3 max-w-[880px] text-sm leading-6 text-slate-300 sm:text-base sm:leading-7">
+          <p className="mt-3 max-w-220 text-sm leading-6 text-slate-300 sm:text-base sm:leading-7">
             这个 Demo 展示的是多链钱包接入的工程抽象。重点不是“连上钱包”，
             而是把连接、网络识别、签名适配、交易适配、账户绑定和错误归一拆成可维护的前端链路。
           </p>
