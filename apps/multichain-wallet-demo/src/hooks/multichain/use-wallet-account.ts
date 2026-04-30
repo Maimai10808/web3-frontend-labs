@@ -15,8 +15,8 @@ import { EvmAdapter } from "@/lib/multichain/adapters/evm-adapter";
 import { useWallet, useConnection } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { SolanaAdapter } from "@/lib/multichain/adapters/solana-adapter";
+import { useBtcWallet } from "./use-btc-wallet";
 
-import { MockBtcAdapter } from "@/lib/multichain/adapters/mock-btc-adapter";
 import { MockSeiAdapter } from "@/lib/multichain/adapters/mock-sei-adapter";
 import { useActiveEcosystem } from "./use-active-ecosystem";
 import type { WalletAdapter } from "@/lib/multichain/types";
@@ -120,7 +120,12 @@ export function useWalletAccount() {
     ],
   );
 
-  const btcAdapter = useMemo(() => new MockBtcAdapter(), []);
+  const {
+    adapter: btcAdapter,
+    walletName: btcWalletName,
+    selectWallet: selectBtcWallet,
+  } = useBtcWallet();
+
   const seiAdapter = useMemo(() => new MockSeiAdapter(), []);
 
   const adapter = useMemo<WalletAdapter | null>(() => {
@@ -146,5 +151,7 @@ export function useWalletAccount() {
     },
     evmStatus: account.status,
     evmIsConnected: account.isConnected,
+    btcWalletName,
+    selectBtcWallet,
   };
 }
