@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo, useState } from "react";
 
-import type { WalletAdapter } from "@/lib/multichain/types";
+import type { WalletAccount, WalletAdapter } from "@/lib/multichain/types";
 import { SeiAdapter } from "@/lib/multichain/adapters/sei-adapter";
 import { seiChainConfiguration } from "@/lib/multichain/sei/config";
 
@@ -40,43 +40,64 @@ type SeiWalletSession = {
   provider: SeiWindowProvider;
 };
 
+type SupportedSeiWallet = "compass" | "keplr" | "leap";
+
 declare global {
   interface Window {
     compass?: SeiWindowProvider;
+    compassWallet?: SeiWindowProvider;
     keplr?: SeiWindowProvider;
     leap?: SeiWindowProvider;
   }
 }
 
-function getInjectedSeiWallet():
-  | { provider: SeiWindowProvider; walletName: string }
-  | null {
+function debugSei(...args: unknown[]) {
+  if (process.env.NODE_ENV === "development") {
+    console.debug("[sei-wallet]", ...args);
+  }
+}
+
+function getDetectedSeiWallets() {
   if (typeof window === "undefined") {
-    return null;
+    return [] as Array<{
+      type: SupportedSeiWallet;
+      walletName: string;
+      provider: SeiWindowProvider;
+    }>;
   }
 
-  if (window.compass) {
-    return {
-      provider: window.compass,
+  const wallets: Array<{
+    type: SupportedSeiWallet;
+    walletName: string;
+    provider: SeiWindowProvider;
+  }> = [];
+
+  const compassProvider = window.compass ?? window.compassWallet;
+  if (compassProvider) {
+    wallets.push({
+      type: "compass",
       walletName: "Compass",
-    };
+      provider: compassProvider,
+    });
   }
 
   if (window.keplr) {
-    return {
-      provider: window.keplr,
+    wallets.push({
+      type: "keplr",
       walletName: "Keplr",
-    };
+      provider: window.keplr,
+    });
   }
 
   if (window.leap) {
-    return {
-      provider: window.leap,
+    wallets.push({
+      type: "leap",
       walletName: "Leap",
-    };
+      provider: window.leap,
+    });
   }
 
-  return null;
+  return wallets;
 }
 
 async function getAddressFromProvider(provider: SeiWindowProvider) {
@@ -109,20 +130,47 @@ export function useSeiWallet(): {
   adapter: WalletAdapter;
   walletName: string | null;
   address: string | null;
-  availableWalletName: string | null;
+  availableWallets: Array<{
+    type: SupportedSeiWallet;
+    walletName: string;
+  }>;
+  selectedWallet: SupportedSeiWallet | null;
+  selectWallet: (wallet: SupportedSeiWallet) => void;
 } {
   const [session, setSession] = useState<SeiWalletSession | null>(null);
-  const injected = getInjectedSeiWallet();
+  const [selectedWallet, setSelectedWallet] =
+    useState<SupportedSeiWallet | null>(null);
+  const detectedWallets = getDetectedSeiWallets();
 
   const connectWallet = useCallback(async () => {
-    const nextInjected = getInjectedSeiWallet();
-    if (!nextInjected) {
-      throw new Error("No Sei wallet installed. Install Compass, Keplr, or Leap.");
+    debugSei("selected wallet", selectedWallet);
+    debugSei(
+      "provider detected",
+      detectedWallets.map((wallet) => wallet.walletName),
+    );
+
+    if (!selectedWallet) {
+      throw new Error("Select a Sei wallet before connecting.");
     }
 
-    const { provider, walletName } = nextInjected;
+    const selectedProvider = detectedWallets.find(
+      (wallet) => wallet.type === selectedWallet,
+    );
+
+    if (!selectedProvider) {
+      throw new Error(
+        "Selected Sei wallet is not installed. Install Compass, Keplr, or Leap.",
+      );
+    }
+
+    const { provider, walletName } = selectedProvider;
     await provider.enable?.(seiChainConfiguration.chainId);
     const address = await getAddressFromProvider(provider);
+    debugSei("normalized account", {
+      walletName,
+      address,
+      chainId: seiChainConfiguration.chainId,
+    });
 
     setSession({
       address,
@@ -130,7 +178,15 @@ export function useSeiWallet(): {
       walletName,
       provider,
     });
-  }, []);
+
+    return {
+      ecosystem: "sei",
+      address,
+      displayAddress: `${address.slice(0, 6)}...${address.slice(-4)}`,
+      providerName: walletName,
+      networkId: seiChainConfiguration.chainId,
+    } satisfies WalletAccount;
+  }, [detectedWallets, selectedWallet]);
 
   const disconnectWallet = useCallback(() => {
     setSession(null);
@@ -155,6 +211,11 @@ export function useSeiWallet(): {
     adapter,
     walletName: session?.walletName ?? null,
     address: session?.address ?? null,
-    availableWalletName: injected?.walletName ?? null,
+    availableWallets: detectedWallets.map((wallet) => ({
+      type: wallet.type,
+      walletName: wallet.walletName,
+    })),
+    selectedWallet,
+    selectWallet: setSelectedWallet,
   };
 }

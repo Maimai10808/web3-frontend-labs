@@ -1,5 +1,6 @@
 "use client";
 
+import { useMultichainDemoStore } from "@/store/multichain-demo-store";
 import { useWalletAccount } from "@/hooks/multichain/use-wallet-account";
 
 import { EcosystemSwitcher } from "./ecosystem-switcher";
@@ -14,7 +15,8 @@ import { DebugPayloadPanel } from "./debug-payload-panel";
 import { TalkingPointsCard } from "./talking-points-card";
 
 export function DemoShell() {
-  const { ecosystem, currentConnection } = useWalletAccount();
+  const { ecosystem } = useWalletAccount();
+  const unifiedWallet = useMultichainDemoStore((state) => state.unifiedWallet);
 
   return (
     <main className="grid gap-4 px-6 py-6">
@@ -40,38 +42,56 @@ export function DemoShell() {
           </span>
         </div>
 
-        {currentConnection ? (
-          <div className="grid gap-3 md:grid-cols-3">
-            <div className="rounded-xl bg-slate-950 p-3">
-              <div className="text-xs uppercase tracking-wide text-slate-500">
-                Wallet
-              </div>
-              <div className="mt-1 text-sm font-medium text-white">
-                {currentConnection.providerName}
-              </div>
+        <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-6">
+          <div className="rounded-xl bg-slate-950 p-3">
+            <div className="text-xs uppercase tracking-wide text-slate-500">
+              Status
             </div>
-            <div className="rounded-xl bg-slate-950 p-3">
-              <div className="text-xs uppercase tracking-wide text-slate-500">
-                Address
-              </div>
-              <div className="mt-1 text-sm font-medium text-white">
-                {currentConnection.displayAddress}
-              </div>
-            </div>
-            <div className="rounded-xl bg-slate-950 p-3">
-              <div className="text-xs uppercase tracking-wide text-slate-500">
-                Network
-              </div>
-              <div className="mt-1 text-sm font-medium text-white">
-                {currentConnection.networkLabel ?? "-"}
-              </div>
+            <div className="mt-1 text-sm font-medium text-white">
+              {unifiedWallet.status}
             </div>
           </div>
-        ) : (
-          <div className="rounded-xl bg-slate-950 p-4 text-sm text-slate-400">
-            No wallet connected for the currently selected ecosystem.
+          <div className="rounded-xl bg-slate-950 p-3">
+            <div className="text-xs uppercase tracking-wide text-slate-500">
+              Namespace
+            </div>
+            <div className="mt-1 text-sm font-medium text-white">
+              {unifiedWallet.account?.namespace ?? "-"}
+            </div>
           </div>
-        )}
+          <div className="rounded-xl bg-slate-950 p-3">
+            <div className="text-xs uppercase tracking-wide text-slate-500">
+              Wallet
+            </div>
+            <div className="mt-1 text-sm font-medium text-white">
+              {unifiedWallet.account?.walletName ?? "-"}
+            </div>
+          </div>
+          <div className="rounded-xl bg-slate-950 p-3">
+            <div className="text-xs uppercase tracking-wide text-slate-500">
+              Address
+            </div>
+            <div className="mt-1 truncate text-sm font-medium text-white">
+              {unifiedWallet.account?.address ?? "-"}
+            </div>
+          </div>
+          <div className="rounded-xl bg-slate-950 p-3">
+            <div className="text-xs uppercase tracking-wide text-slate-500">
+              Chain ID
+            </div>
+            <div className="mt-1 text-sm font-medium text-white">
+              {unifiedWallet.account?.chainId ?? "-"}
+            </div>
+          </div>
+          <div className="rounded-xl bg-slate-950 p-3">
+            <div className="text-xs uppercase tracking-wide text-slate-500">
+              Error
+            </div>
+            <div className="mt-1 text-sm font-medium text-rose-300">
+              {unifiedWallet.error ?? "-"}
+            </div>
+          </div>
+        </div>
       </section>
 
       <section className="grid gap-4 xl:grid-cols-2">

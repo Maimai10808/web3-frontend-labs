@@ -1,14 +1,66 @@
 "use client";
 
 import { useState } from "react";
+import { useMultichainDemoStore } from "@/store/multichain-demo-store";
 import { useWalletAccount } from "@/hooks/multichain/use-wallet-account";
 import { useMultichainLogs } from "@/hooks/multichain/use-multichain-logs";
+import type {
+  ChainNamespace,
+  MultiChainError,
+} from "@/lib/multichain/types";
+
+function debugBtc(...args: unknown[]) {
+  if (process.env.NODE_ENV === "development") {
+    console.debug("[btc-wallet]", ...args);
+  }
+}
+
+function debugSei(...args: unknown[]) {
+  if (process.env.NODE_ENV === "development") {
+    console.debug("[sei-wallet]", ...args);
+  }
+}
+
+function debugUnified(...args: unknown[]) {
+  if (process.env.NODE_ENV === "development") {
+    console.debug("[unified-wallet]", ...args);
+  }
+}
+
+function getReadableErrorMessage(error: unknown) {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  if (
+    error &&
+    typeof error === "object" &&
+    "message" in error &&
+    typeof (error as MultiChainError).message === "string"
+  ) {
+    return (error as MultiChainError).message;
+  }
+
+  return "Unknown connection error";
+}
+
+function toChainNamespace(namespace: string): ChainNamespace {
+  if (
+    namespace === "evm" ||
+    namespace === "solana" ||
+    namespace === "btc" ||
+    namespace === "sei"
+  ) {
+    return namespace;
+  }
+
+  throw new Error(`Unsupported wallet namespace: ${namespace}`);
+}
 
 export function WalletConnectPanel() {
   const {
     adapter,
     ecosystem,
-    currentConnection,
     evmConnectors,
     connectEvmWith,
     solanaWallets,
@@ -16,42 +68,93 @@ export function WalletConnectPanel() {
     selectSolanaWallet,
     btcWalletName,
     selectBtcWallet,
-    seiAvailableWalletName,
+    seiAvailableWallets,
     disconnectAllWallets,
+    selectedSeiWallet,
+    selectSeiWallet,
   } = useWalletAccount();
 
   const { pushLog } = useMultichainLogs();
+  const unifiedWallet = useMultichainDemoStore((state) => state.unifiedWallet);
+  const setUnifiedWalletConnecting = useMultichainDemoStore(
+    (state) => state.setUnifiedWalletConnecting,
+  );
+  const setUnifiedWalletConnected = useMultichainDemoStore(
+    (state) => state.setUnifiedWalletConnected,
+  );
+  const setUnifiedWalletError = useMultichainDemoStore(
+    (state) => state.setUnifiedWalletError,
+  );
+  const resetUnifiedWallet = useMultichainDemoStore(
+    (state) => state.resetUnifiedWallet,
+  );
   const [isBusy, setIsBusy] = useState(false);
 
   const handleConnect = async (connectorId?: string) => {
     if (!adapter) return;
 
     setIsBusy(true);
+    setUnifiedWalletConnecting(ecosystem);
+
     try {
       await disconnectAllWallets(ecosystem);
+      debugUnified("disconnect all before connect", ecosystem);
 
       let connectedAccount = null;
 
       if (ecosystem === "evm" && connectorId) {
-        await connectEvmWith(connectorId);
+        debugUnified("selected wallet", connectorId);
+        connectedAccount = await connectEvmWith(connectorId);
       } else {
+        if (ecosystem === "btc") {
+          debugBtc("selected wallet", btcWalletName);
+        }
+        if (ecosystem === "sei") {
+          debugSei("selected wallet", selectedSeiWallet);
+        }
         connectedAccount = await adapter.connect();
       }
 
       const account = connectedAccount ?? (await adapter.getAccount());
+      debugUnified("normalized account", account);
+
+      if (!account) {
+        throw new Error("Wallet connected but no account was returned.");
+      }
+
+      setUnifiedWalletConnected({
+        namespace: toChainNamespace(account.ecosystem),
+        walletName: account.providerName,
+        address: account.address,
+        chainId:
+          typeof account.chainId === "number"
+            ? String(account.chainId)
+            : account.networkId,
+      });
+      debugUnified("store state after connect", {
+        ...unifiedWallet,
+        status: "connected",
+        account,
+      });
 
       pushLog({
         level: "success",
         title: "Wallet Connected",
-        message: account
-          ? `${account.providerName} -> ${account.displayAddress}`
-          : `Connected ${ecosystem} wallet`,
+        message: `${account.providerName} -> ${account.displayAddress}`,
       });
     } catch (error) {
+      const message = getReadableErrorMessage(error);
+      setUnifiedWalletError(ecosystem, message);
+      debugUnified("store state after error", {
+        status: "error",
+        ecosystem,
+        message,
+      });
+
       pushLog({
         level: "error",
         title: "Connect Failed",
-        message: error instanceof Error ? error.message : "Unknown error",
+        message,
       });
     } finally {
       setIsBusy(false);
@@ -64,6 +167,7 @@ export function WalletConnectPanel() {
     setIsBusy(true);
     try {
       await adapter.disconnect();
+      resetUnifiedWallet();
 
       pushLog({
         level: "info",
@@ -71,10 +175,13 @@ export function WalletConnectPanel() {
         message: `${ecosystem} wallet disconnected`,
       });
     } catch (error) {
+      const message = getReadableErrorMessage(error);
+      setUnifiedWalletError(ecosystem, message);
+
       pushLog({
         level: "error",
         title: "Disconnect Failed",
-        message: error instanceof Error ? error.message : "Unknown error",
+        message,
       });
     } finally {
       setIsBusy(false);
@@ -92,8 +199,8 @@ export function WalletConnectPanel() {
           Current session
         </div>
         <div>
-          {currentConnection
-            ? `${currentConnection.providerName} -> ${currentConnection.displayAddress}`
+          {unifiedWallet.account
+            ? `${unifiedWallet.account.walletName} -> ${unifiedWallet.account.address.slice(0, 6)}...${unifiedWallet.account.address.slice(-4)}`
             : `No ${ecosystem} wallet connected`}
         </div>
       </div>
@@ -199,14 +306,43 @@ export function WalletConnectPanel() {
 
           <div className="rounded-xl border border-white/10 bg-gray-950 p-3 text-sm text-gray-300">
             <div className="mb-1 text-xs uppercase tracking-wide text-gray-500">
-              Detected Sei Wallet
+              Selected Sei Wallet
             </div>
-            <div>{seiAvailableWalletName ?? "None detected"}</div>
+            <div>
+              {selectedSeiWallet
+                ? seiAvailableWallets.find(
+                    (wallet) => wallet.type === selectedSeiWallet,
+                  )?.walletName ?? "Unknown"
+                : "None"}
+            </div>
           </div>
+
+          <div className="grid gap-2 sm:grid-cols-3">
+            {seiAvailableWallets.map((wallet) => (
+              <button
+                key={wallet.type}
+                onClick={() => selectSeiWallet(wallet.type)}
+                disabled={isBusy}
+                className={
+                  selectedSeiWallet === wallet.type
+                    ? "rounded-xl bg-cyan-600 px-4 py-2 text-sm text-white transition hover:bg-cyan-500 disabled:cursor-not-allowed disabled:opacity-50"
+                    : "rounded-xl bg-slate-800 px-4 py-2 text-sm text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+                }
+              >
+                Select {wallet.walletName}
+              </button>
+            ))}
+          </div>
+
+          {seiAvailableWallets.length === 0 ? (
+            <p className="rounded-xl border border-rose-500/20 bg-rose-500/10 p-3 text-sm text-rose-200">
+              No Sei wallet detected. Install Compass, Keplr, or Leap.
+            </p>
+          ) : null}
 
           <button
             onClick={() => handleConnect()}
-            disabled={isBusy || !seiAvailableWalletName}
+            disabled={isBusy || !selectedSeiWallet}
             className="rounded-xl bg-cyan-600 px-4 py-2 text-sm text-white transition hover:bg-cyan-500 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Connect Sei Wallet
@@ -230,6 +366,12 @@ export function WalletConnectPanel() {
       >
         Disconnect
       </button>
+
+      {unifiedWallet.status === "error" && unifiedWallet.error ? (
+        <p className="mt-3 rounded-xl border border-rose-500/20 bg-rose-500/10 p-3 text-sm text-rose-200">
+          {unifiedWallet.error}
+        </p>
+      ) : null}
     </section>
   );
 }

@@ -9,6 +9,12 @@ import { BtcAdapter } from "@/lib/multichain/adapters/btc-adapter";
 
 type SupportedBtcWallet = "unisat" | "okx";
 
+function debugBtc(...args: unknown[]) {
+  if (process.env.NODE_ENV === "development") {
+    console.debug("[btc-wallet]", ...args);
+  }
+}
+
 export function useBtcWallet(): {
   adapter: WalletAdapter;
   walletName: string | null;
@@ -20,6 +26,7 @@ export function useBtcWallet(): {
   const [address, setAddress] = useState<string | null>(null);
 
   const selectWallet = (walletType: SupportedBtcWallet) => {
+    debugBtc("selected wallet", walletType);
     if (walletType === "unisat") {
       setWallet(new UnisatWallet());
       setAddress(null);
@@ -33,6 +40,7 @@ export function useBtcWallet(): {
   };
 
   const resetWallet = () => {
+    debugBtc("reset wallet");
     setWallet(null);
     setAddress(null);
   };

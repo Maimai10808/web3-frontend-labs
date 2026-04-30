@@ -12,7 +12,7 @@ import { normalizeMultiChainError } from "../errors";
 import { getExplorerTxUrl } from "../explorer";
 
 type SeiAdapterDeps = {
-  connectWallet: () => Promise<void>;
+  connectWallet: () => Promise<WalletAccount>;
   disconnectWallet: () => Promise<void>;
   getAddress: () => string | undefined;
   getChainId: () => string | undefined;
@@ -42,14 +42,7 @@ export class SeiAdapter implements WalletAdapter {
 
   async connect(): Promise<WalletAccount> {
     try {
-      await this.deps.connectWallet();
-
-      const account = await this.getAccount();
-      if (!account) {
-        throw new Error("Sei wallet not connected yet");
-      }
-
-      return account;
+      return await this.deps.connectWallet();
     } catch (error) {
       throw normalizeMultiChainError(error, this.ecosystem);
     }

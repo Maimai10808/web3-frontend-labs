@@ -1,11 +1,26 @@
 export type ChainEcosystem = "evm" | "solana" | "btc" | "sei" | "ton";
 
+export type ChainNamespace = "evm" | "solana" | "btc" | "sei";
+
 export type WalletConnectionStatus =
   | "idle"
   | "connecting"
   | "connected"
   | "disconnected"
   | "error";
+
+export type UnifiedWalletAccount = {
+  namespace: ChainNamespace;
+  walletName: string;
+  address: string;
+  chainId?: string;
+};
+
+export type UnifiedWalletState = {
+  status: WalletConnectionStatus;
+  account?: UnifiedWalletAccount;
+  error?: string;
+};
 
 export type SignatureKind =
   | "personal_sign"

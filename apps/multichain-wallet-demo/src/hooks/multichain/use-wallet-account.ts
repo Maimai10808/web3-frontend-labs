@@ -18,16 +18,19 @@ import { SolanaAdapter } from "@/lib/multichain/adapters/solana-adapter";
 import { useBtcWallet } from "./use-btc-wallet";
 
 import { useActiveEcosystem } from "./use-active-ecosystem";
-import type { ChainEcosystem, WalletAdapter } from "@/lib/multichain/types";
+import type {
+  ChainEcosystem,
+  UnifiedWalletAccount,
+  WalletAccount,
+  WalletAdapter,
+} from "@/lib/multichain/types";
 import { useSeiWallet } from "./use-sei-wallet";
 
-type ConnectionSummary = {
-  ecosystem: ChainEcosystem;
-  providerName: string;
-  address: string;
-  displayAddress: string;
-  networkLabel?: string;
-};
+function debugUnified(...args: unknown[]) {
+  if (process.env.NODE_ENV === "development") {
+    console.debug("[unified-wallet]", ...args);
+  }
+}
 
 export function useWalletAccount() {
   const { ecosystem } = useActiveEcosystem();
@@ -43,7 +46,9 @@ export function useWalletAccount() {
     adapter: seiAdapter,
     walletName: seiWalletName,
     address: seiAddress,
-    availableWalletName: seiAvailableWalletName,
+    availableWallets: seiAvailableWallets,
+    selectedWallet: selectedSeiWallet,
+    selectWallet: selectSeiWallet,
   } = useSeiWallet();
 
   const { connection } = useConnection();
@@ -161,45 +166,41 @@ export function useWalletAccount() {
     return null;
   }, [btcAdapter, ecosystem, evmAdapter, seiAdapter, solanaAdapter]);
 
-  const currentConnection = useMemo<ConnectionSummary | null>(() => {
+  const currentConnection = useMemo<UnifiedWalletAccount | null>(() => {
     if (ecosystem === "evm" && account.isConnected && account.address) {
       return {
-        ecosystem: "evm",
-        providerName: account.connector?.name ?? "EVM Wallet",
+        namespace: "evm",
+        walletName: account.connector?.name ?? "EVM Wallet",
         address: account.address,
-        displayAddress: `${account.address.slice(0, 6)}...${account.address.slice(-4)}`,
-        networkLabel: account.chainId ? `chain ${account.chainId}` : undefined,
+        chainId: account.chainId ? String(account.chainId) : undefined,
       };
     }
 
     if (ecosystem === "solana" && connected && publicKey) {
       const address = publicKey.toBase58();
       return {
-        ecosystem: "solana",
-        providerName: wallet?.adapter.name ?? "Solana Wallet",
+        namespace: "solana",
+        walletName: wallet?.adapter.name ?? "Solana Wallet",
         address,
-        displayAddress: `${address.slice(0, 6)}...${address.slice(-4)}`,
-        networkLabel: "solana-devnet",
+        chainId: "solana-devnet",
       };
     }
 
     if (ecosystem === "btc" && btcAddress && btcWalletName) {
       return {
-        ecosystem: "btc",
-        providerName: btcWalletName,
+        namespace: "btc",
+        walletName: btcWalletName,
         address: btcAddress,
-        displayAddress: `${btcAddress.slice(0, 6)}...${btcAddress.slice(-4)}`,
-        networkLabel: "bitcoin-mainnet",
+        chainId: "bitcoin-mainnet",
       };
     }
 
     if (ecosystem === "sei" && seiAddress) {
       return {
-        ecosystem: "sei",
-        providerName: seiWalletName ?? "Sei Wallet",
+        namespace: "sei",
+        walletName: seiWalletName ?? "Sei Wallet",
         address: seiAddress,
-        displayAddress: `${seiAddress.slice(0, 6)}...${seiAddress.slice(-4)}`,
-        networkLabel: "pacific-1",
+        chainId: "pacific-1",
       };
     }
 
@@ -236,19 +237,33 @@ export function useWalletAccount() {
     ]);
   };
 
+  debugUnified("current connection snapshot", currentConnection);
+
   return {
     adapter,
     ecosystem,
     currentConnection,
     evmConnectors: connectors,
-    connectEvmWith: async (connectorId: string) => {
+    connectEvmWith: async (connectorId: string): Promise<WalletAccount> => {
       const target = connectors.find(
         (connector) => connector.id === connectorId,
       );
       if (!target) {
         throw new Error(`Connector not found: ${connectorId}`);
       }
-      await connectAsync({ connector: target });
+      const result = await connectAsync({ connector: target });
+      const address = result.accounts[0];
+      if (!address) {
+        throw new Error("Failed to get EVM account after connect");
+      }
+
+      return {
+        ecosystem: "evm",
+        address,
+        displayAddress: `${address.slice(0, 6)}...${address.slice(-4)}`,
+        providerName: target.name,
+        chainId: result.chainId,
+      };
     },
     evmStatus: account.status,
     evmIsConnected: account.isConnected,
@@ -265,7 +280,9 @@ export function useWalletAccount() {
     selectBtcWallet,
     seiWalletName,
     seiAddress,
-    seiAvailableWalletName,
+    seiAvailableWallets,
+    selectedSeiWallet,
+    selectSeiWallet,
     disconnectAllWallets,
   };
 }
