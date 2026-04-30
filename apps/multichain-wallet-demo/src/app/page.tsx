@@ -1,9 +1,6 @@
-import { DemoShell } from "@/components/wallet/demo-shell";
+import { redirect } from "next/navigation";
+import { defaultLocale } from "@web3-frontend-labs/i18n/config";
 
-export default function Home() {
-  return (
-    <div>
-      <DemoShell />
-    </div>
-  );
+export default function RootPage() {
+  redirect(`/${defaultLocale}`);
 }
