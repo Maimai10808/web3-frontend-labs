@@ -8,10 +8,16 @@ export function WalletConnectPanel() {
   const {
     adapter,
     ecosystem,
+    currentConnection,
     evmConnectors,
     connectEvmWith,
+    solanaWallets,
+    solanaWalletName,
+    selectSolanaWallet,
     btcWalletName,
     selectBtcWallet,
+    seiAvailableWalletName,
+    disconnectAllWallets,
   } = useWalletAccount();
 
   const { pushLog } = useMultichainLogs();
@@ -22,13 +28,17 @@ export function WalletConnectPanel() {
 
     setIsBusy(true);
     try {
+      await disconnectAllWallets(ecosystem);
+
+      let connectedAccount = null;
+
       if (ecosystem === "evm" && connectorId) {
         await connectEvmWith(connectorId);
       } else {
-        await adapter.connect();
+        connectedAccount = await adapter.connect();
       }
 
-      const account = await adapter.getAccount();
+      const account = connectedAccount ?? (await adapter.getAccount());
 
       pushLog({
         level: "success",
@@ -76,6 +86,17 @@ export function WalletConnectPanel() {
       <h3 className="mb-3 text-base font-semibold text-white">
         Wallet Connect
       </h3>
+
+      <div className="mb-3 rounded-xl border border-white/10 bg-gray-950 p-3 text-sm text-gray-300">
+        <div className="mb-1 text-xs uppercase tracking-wide text-gray-500">
+          Current session
+        </div>
+        <div>
+          {currentConnection
+            ? `${currentConnection.providerName} -> ${currentConnection.displayAddress}`
+            : `No ${ecosystem} wallet connected`}
+        </div>
+      </div>
 
       {ecosystem === "evm" ? (
         <div className="grid gap-2">
@@ -131,14 +152,37 @@ export function WalletConnectPanel() {
 
       {ecosystem === "solana" ? (
         <div className="grid gap-2">
+          <div className="rounded-xl border border-white/10 bg-gray-950 p-3 text-sm text-gray-300">
+            <div className="mb-1 text-xs uppercase tracking-wide text-gray-500">
+              Selected Solana Wallet
+            </div>
+            <div>{solanaWalletName ?? "None"}</div>
+          </div>
+
+          <div className="grid gap-2 sm:grid-cols-2">
+            {solanaWallets.map((walletOption) => (
+              <button
+                key={walletOption.label}
+                onClick={() => selectSolanaWallet(walletOption.value)}
+                disabled={isBusy}
+                className={
+                  solanaWalletName === walletOption.value
+                    ? "rounded-xl bg-violet-600 px-4 py-2 text-sm text-white transition hover:bg-violet-500 disabled:cursor-not-allowed disabled:opacity-50"
+                    : "rounded-xl bg-slate-800 px-4 py-2 text-sm text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+                }
+              >
+                Select {walletOption.label}
+              </button>
+            ))}
+          </div>
+
           <p className="rounded-xl border border-white/10 bg-gray-950 p-3 text-sm text-gray-300">
-            Solana uses wallet-adapter style connection. In a real integration,
-            this button would open the Solana wallet modal.
+            Pick a Solana wallet first, then connect it.
           </p>
 
           <button
             onClick={() => handleConnect()}
-            disabled={isBusy}
+            disabled={isBusy || !solanaWalletName}
             className="rounded-xl bg-violet-600 px-4 py-2 text-sm text-white transition hover:bg-violet-500 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Connect Solana Wallet
@@ -153,9 +197,16 @@ export function WalletConnectPanel() {
             dedicated wallet provider.
           </p>
 
+          <div className="rounded-xl border border-white/10 bg-gray-950 p-3 text-sm text-gray-300">
+            <div className="mb-1 text-xs uppercase tracking-wide text-gray-500">
+              Detected Sei Wallet
+            </div>
+            <div>{seiAvailableWalletName ?? "None detected"}</div>
+          </div>
+
           <button
             onClick={() => handleConnect()}
-            disabled={isBusy}
+            disabled={isBusy || !seiAvailableWalletName}
             className="rounded-xl bg-cyan-600 px-4 py-2 text-sm text-white transition hover:bg-cyan-500 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Connect Sei Wallet

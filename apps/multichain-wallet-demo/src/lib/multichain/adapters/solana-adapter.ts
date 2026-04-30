@@ -18,7 +18,7 @@ import {
 } from "@solana/web3.js";
 
 type SolanaAdapterDeps = {
-  connectWallet: () => Promise<void>;
+  connectWallet: () => Promise<WalletAccount>;
   disconnectWallet: () => Promise<void>;
   getPublicKey: () => PublicKey | null;
   getConnected: () => boolean;
@@ -38,12 +38,7 @@ export class SolanaAdapter implements WalletAdapter {
 
   async connect(): Promise<WalletAccount> {
     try {
-      await this.deps.connectWallet();
-      const account = await this.getAccount();
-      if (!account) {
-        throw new Error("Failed to get Solana account after connect");
-      }
-      return account;
+      return await this.deps.connectWallet();
     } catch (error) {
       throw normalizeMultiChainError(error, this.ecosystem);
     }

@@ -1,5 +1,7 @@
 "use client";
 
+import { useWalletAccount } from "@/hooks/multichain/use-wallet-account";
+
 import { EcosystemSwitcher } from "./ecosystem-switcher";
 import { WalletConnectPanel } from "./wallet-connect-panel";
 import { NetworkStatusCard } from "./network-status-card";
@@ -12,6 +14,8 @@ import { DebugPayloadPanel } from "./debug-payload-panel";
 import { TalkingPointsCard } from "./talking-points-card";
 
 export function DemoShell() {
+  const { ecosystem, currentConnection } = useWalletAccount();
+
   return (
     <main className="grid gap-4 px-6 py-6">
       <section className="grid gap-4 rounded-2xl border border-white/10 bg-slate-900 p-6 shadow-sm">
@@ -26,6 +30,48 @@ export function DemoShell() {
           </p>
         </div>
         <EcosystemSwitcher />
+      </section>
+
+      <section className="rounded-2xl border border-white/10 bg-slate-900 p-4 shadow-sm">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <h2 className="text-base font-semibold">Current Wallet Session</h2>
+          <span className="rounded-full border border-white/10 bg-slate-800 px-3 py-1 text-xs uppercase tracking-wide text-slate-300">
+            Active ecosystem: {ecosystem}
+          </span>
+        </div>
+
+        {currentConnection ? (
+          <div className="grid gap-3 md:grid-cols-3">
+            <div className="rounded-xl bg-slate-950 p-3">
+              <div className="text-xs uppercase tracking-wide text-slate-500">
+                Wallet
+              </div>
+              <div className="mt-1 text-sm font-medium text-white">
+                {currentConnection.providerName}
+              </div>
+            </div>
+            <div className="rounded-xl bg-slate-950 p-3">
+              <div className="text-xs uppercase tracking-wide text-slate-500">
+                Address
+              </div>
+              <div className="mt-1 text-sm font-medium text-white">
+                {currentConnection.displayAddress}
+              </div>
+            </div>
+            <div className="rounded-xl bg-slate-950 p-3">
+              <div className="text-xs uppercase tracking-wide text-slate-500">
+                Network
+              </div>
+              <div className="mt-1 text-sm font-medium text-white">
+                {currentConnection.networkLabel ?? "-"}
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="rounded-xl bg-slate-950 p-4 text-sm text-slate-400">
+            No wallet connected for the currently selected ecosystem.
+          </div>
+        )}
       </section>
 
       <section className="grid gap-4 xl:grid-cols-2">
