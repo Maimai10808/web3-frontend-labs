@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 
 import { useMultichainLogs } from "@/hooks/multichain/use-multichain-logs";
 import { useNetworkStatus } from "@/hooks/multichain/use-network-status";
@@ -27,7 +28,10 @@ function debugUnified(...args: unknown[]) {
   }
 }
 
-function getReadableErrorMessage(error: unknown) {
+function getReadableErrorMessage(
+  error: unknown,
+  fallbackMessage: string,
+) {
   if (error instanceof Error) {
     return error.message;
   }
@@ -41,7 +45,7 @@ function getReadableErrorMessage(error: unknown) {
     return (error as MultiChainError).message;
   }
 
-  return "Unknown connection error";
+  return fallbackMessage;
 }
 
 function toChainNamespace(namespace: string): ChainNamespace {
@@ -65,16 +69,23 @@ type BasicNetworkStatus =
   | null
   | undefined;
 
-function getStatusLabel(status: BasicNetworkStatus) {
+function getStatusLabel(
+  status: BasicNetworkStatus,
+  messages: {
+    walletNotConnected: string;
+    wrongNetwork: string;
+    ready: string;
+  },
+) {
   if (!status?.connected) {
-    return "Wallet not connected";
+    return messages.walletNotConnected;
   }
 
   if (status.switchRequired) {
-    return "Wrong network";
+    return messages.wrongNetwork;
   }
 
-  return "Ready";
+  return messages.ready;
 }
 
 function getStatusClassName(status: BasicNetworkStatus) {
@@ -98,6 +109,8 @@ export function formatNetworkValue(value?: string | number | null) {
 }
 
 export function useWalletControlPanel() {
+  const t = useTranslations("multichainDemo.walletControl");
+  const ecosystemLabels = useTranslations("multichainDemo.ecosystem");
   const walletAccount = useWalletAccount();
 
   const {
@@ -142,7 +155,11 @@ export function useWalletControlPanel() {
   const currentTarget =
     DEFAULT_CHAIN_BY_ECOSYSTEM[networkStatus?.ecosystem ?? "evm"];
 
-  const statusLabel = getStatusLabel(networkStatus);
+  const statusLabel = getStatusLabel(networkStatus, {
+    walletNotConnected: t("statusWalletNotConnected"),
+    wrongNetwork: t("statusWrongNetwork"),
+    ready: t("statusReady"),
+  });
   const statusClassName = getStatusClassName(networkStatus);
 
   const handleConnect = async () => {
@@ -159,7 +176,7 @@ export function useWalletControlPanel() {
 
       if (ecosystem === "evm") {
         if (!selectedEvmWalletId) {
-          throw new Error("Select an EVM wallet first.");
+          throw new Error(t("errorSelectEvmFirst"));
         }
 
         debugUnified("selected wallet", selectedEvmWalletId);
@@ -185,7 +202,7 @@ export function useWalletControlPanel() {
       debugUnified("normalized account", account);
 
       if (!account) {
-        throw new Error("Wallet connected but no account was returned.");
+        throw new Error(t("errorNoAccountReturned"));
       }
 
       setUnifiedWalletConnected({
@@ -206,13 +223,16 @@ export function useWalletControlPanel() {
 
       pushLog({
         level: "success",
-        title: "Wallet Connected",
+        title: t("logWalletConnected"),
         message: `${account.providerName} -> ${account.displayAddress}`,
       });
 
       await refresh();
     } catch (error) {
-      const message = getReadableErrorMessage(error);
+      const message = getReadableErrorMessage(
+        error,
+        t("errorUnknownConnection"),
+      );
 
       setUnifiedWalletError(ecosystem, message);
 
@@ -224,7 +244,7 @@ export function useWalletControlPanel() {
 
       pushLog({
         level: "error",
-        title: "Connect Failed",
+        title: t("logConnectFailed"),
         message,
       });
     } finally {
@@ -244,17 +264,20 @@ export function useWalletControlPanel() {
 
       pushLog({
         level: "info",
-        title: "Wallet Disconnected",
-        message: `${ecosystem} wallet disconnected`,
+        title: t("logWalletDisconnected"),
+        message: `${ecosystemLabels(ecosystem)} wallet disconnected`,
       });
     } catch (error) {
-      const message = getReadableErrorMessage(error);
+      const message = getReadableErrorMessage(
+        error,
+        t("errorUnknownConnection"),
+      );
 
       setUnifiedWalletError(ecosystem, message);
 
       pushLog({
         level: "error",
-        title: "Disconnect Failed",
+        title: t("logDisconnectFailed"),
         message,
       });
     } finally {

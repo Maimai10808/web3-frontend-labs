@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   useAccount,
   type Connector,
@@ -197,6 +198,7 @@ function normalizeSolanaAddress(value: unknown): string | undefined {
 function resolveEvmConnector(
   walletId: EvmWalletId,
   connectors: readonly Connector[],
+  t: ReturnType<typeof useTranslations>,
 ): { connector: Connector; walletName: string } {
   const getByIdOrName = (pattern: string) =>
     connectors.find((connector) => {
@@ -206,7 +208,7 @@ function resolveEvmConnector(
 
   if (walletId === "metamask") {
     if (!hasMetaMaskExtension()) {
-      throw new Error("MetaMask extension not detected.");
+      throw new Error(t("errorMetaMaskMissing"));
     }
 
     return {
@@ -218,7 +220,7 @@ function resolveEvmConnector(
 
   if (walletId === "okx") {
     if (!hasOkxExtension()) {
-      throw new Error("OKX Wallet extension not detected.");
+      throw new Error(t("errorOkxMissing"));
     }
 
     return {
@@ -231,34 +233,33 @@ function resolveEvmConnector(
   if (walletId === "coinbase") {
     const connector = getByIdOrName("coinbase");
     if (!connector) {
-      throw new Error("Coinbase Wallet connector is not configured.");
+      throw new Error(t("errorCoinbaseConnectorMissing"));
     }
     return { connector, walletName: "Coinbase Wallet" };
   }
 
   if (walletId === "walletconnect") {
     if (!process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID) {
-      throw new Error(
-        "WalletConnect projectId is missing. Set NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID.",
-      );
+      throw new Error(t("errorWalletConnectProjectIdMissing"));
     }
 
     const connector = getByIdOrName("walletconnect");
     if (!connector) {
-      throw new Error("WalletConnect connector is not configured.");
+      throw new Error(t("errorWalletConnectConnectorMissing"));
     }
     return { connector, walletName: "WalletConnect" };
   }
 
   const connector = getByIdOrName("injected");
   if (!connector) {
-    throw new Error("Injected wallet connector is not configured.");
+    throw new Error(t("errorInjectedConnectorMissing"));
   }
 
   return { connector, walletName: "Injected Wallet" };
 }
 
 export function useWalletAccount() {
+  const t = useTranslations("multichainDemo.walletAccount");
   const { ecosystem } = useActiveEcosystem();
   const unifiedWallet = useMultichainDemoStore((state) => state.unifiedWallet);
   const [selectedEvmWalletId, setSelectedEvmWalletId] =
@@ -300,7 +301,7 @@ export function useWalletAccount() {
         connectDefault: async () => {
           const first = connectors[0];
           if (!first) {
-            throw new Error("No EVM connector available");
+            throw new Error(t("errorNoEvmConnector"));
           }
           await connectAsync({ connector: first });
         },
@@ -336,6 +337,7 @@ export function useWalletAccount() {
       signMessageAsync,
       signTypedDataAsync,
       switchChainAsync,
+      t,
     ],
   );
 
@@ -360,22 +362,20 @@ export function useWalletAccount() {
           );
 
           if (!selectedSolanaWalletId) {
-            throw new Error("Select a Solana wallet before connecting");
+            throw new Error(t("errorSelectSolanaFirst"));
           }
 
           if (selectedSolanaWalletId === "okx") {
             const provider = getOkxSolanaProvider();
             if (!provider?.connect) {
-              throw new Error(
-                "OKX Solana provider was not detected. Install OKX Wallet with Solana support.",
-              );
+              throw new Error(t("errorOkxSolanaMissing"));
             }
             const rawResult = await provider.connect();
             const address =
               normalizeSolanaAddress(rawResult) ??
               normalizeSolanaAddress(provider.publicKey);
             if (!address) {
-              throw new Error("publicKey missing after OKX Solana connect");
+              throw new Error(t("errorOkxSolanaPublicKeyMissing"));
             }
             return {
               ecosystem: "solana",
@@ -389,18 +389,14 @@ export function useWalletAccount() {
           if (selectedSolanaWalletId === "metamask") {
             const provider = getMetaMaskSolanaProvider();
             if (!provider?.connect) {
-              throw new Error(
-                "MetaMask Solana provider was not detected. Install the Solana-compatible MetaMask wallet feature or use Phantom/OKX/Solflare.",
-              );
+              throw new Error(t("errorMetaMaskSolanaMissing"));
             }
             const rawResult = await provider.connect();
             const address =
               normalizeSolanaAddress(rawResult) ??
               normalizeSolanaAddress(provider.publicKey);
             if (!address) {
-              throw new Error(
-                "publicKey missing after MetaMask Solana connect",
-              );
+              throw new Error(t("errorMetaMaskSolanaPublicKeyMissing"));
             }
             return {
               ecosystem: "solana",
@@ -421,7 +417,7 @@ export function useWalletAccount() {
 
           if (!targetWallet) {
             throw new Error(
-              `${targetWalletName} wallet adapter is not configured.`,
+              t("errorWalletAdapterNotConfigured", { wallet: targetWalletName }),
             );
           }
 
@@ -430,7 +426,7 @@ export function useWalletAccount() {
             targetWallet.readyState !== WalletReadyState.Loadable
           ) {
             throw new Error(
-              `${targetWalletName} wallet not detected or not ready.`,
+              t("errorWalletNotReady", { wallet: targetWalletName }),
             );
           }
 
@@ -447,7 +443,7 @@ export function useWalletAccount() {
 
           const address = targetWallet.adapter.publicKey?.toBase58();
           if (!address) {
-            throw new Error("publicKey missing after connect");
+            throw new Error(t("errorSolanaPublicKeyMissing"));
           }
 
           return {
@@ -477,6 +473,7 @@ export function useWalletAccount() {
       signMessage,
       sendTransaction,
       connection,
+      t,
     ],
   );
 
@@ -590,6 +587,7 @@ export function useWalletAccount() {
       const { connector, walletName } = resolveEvmConnector(
         walletId,
         connectors,
+        t,
       );
       if (account.isConnected) {
         debugUnified("disconnect current evm wallet before reconnect", {
@@ -601,7 +599,7 @@ export function useWalletAccount() {
       const result = await connectAsync({ connector });
       const address = result.accounts[0];
       if (!address) {
-        throw new Error("Failed to get EVM account after connect");
+        throw new Error(t("errorEvmAccountMissing"));
       }
 
       return {

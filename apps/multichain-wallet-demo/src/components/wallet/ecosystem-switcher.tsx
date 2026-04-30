@@ -2,9 +2,11 @@
 
 import { ECOSYSTEM_OPTIONS } from "@/lib/multichain/chains";
 import { useActiveEcosystem } from "@/hooks/multichain/use-active-ecosystem";
+import { useTranslations } from "next-intl";
 
 export function EcosystemSwitcher({ compact = false }: { compact?: boolean }) {
   const { ecosystem, setEcosystem } = useActiveEcosystem();
+  const t = useTranslations("multichainDemo.ecosystem");
 
   return (
     <section
@@ -14,7 +16,7 @@ export function EcosystemSwitcher({ compact = false }: { compact?: boolean }) {
           : "rounded-2xl border border-white/10 bg-slate-900 p-4 shadow-sm"
       }
     >
-      <h3 className="mb-3 text-base font-semibold">Ecosystem</h3>
+      <h3 className="mb-3 text-base font-semibold">{t("title")}</h3>
       <div className="flex flex-wrap gap-2">
         {ECOSYSTEM_OPTIONS.map((item) => (
           <button
@@ -26,7 +28,7 @@ export function EcosystemSwitcher({ compact = false }: { compact?: boolean }) {
                 : "rounded-xl bg-slate-800 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-slate-700"
             }
           >
-            {item.label}
+            {t(item.value)}
           </button>
         ))}
       </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 
 import { useSendDemoTransaction } from "@/hooks/multichain/use-send-demo-transaction";
 import { useSignIntent } from "@/hooks/multichain/use-sign-intent";
@@ -10,6 +11,9 @@ import type { MultiChainError } from "@/lib/multichain/types";
 export function IntentLabPanel() {
   const { connectedAdapter: adapter, connectedEcosystem: ecosystem } =
     useWalletAccount();
+  const t = useTranslations("multichainDemo.intentLab");
+  const common = useTranslations("multichainDemo.common");
+  const ecosystemT = useTranslations("multichainDemo.ecosystem");
 
   const {
     sign,
@@ -25,12 +29,12 @@ export function IntentLabPanel() {
     isPending: isSending,
   } = useSendDemoTransaction();
 
-  const [message, setMessage] = useState("Sign in to multichain-wallet-demo");
+  const [message, setMessage] = useState(t("signMessagePlaceholder"));
   const [to, setTo] = useState("0x000000000000000000000000000000000000dEaD");
   const [value, setValue] = useState("0.0001");
 
   const capabilities = adapter?.getCapabilities();
-  const activeLabel = ecosystem ?? "disconnected";
+  const activeLabel = ecosystem ? ecosystemT(ecosystem) : common("disconnected");
 
   const typedData = useMemo(
     () => ({
@@ -102,11 +106,10 @@ export function IntentLabPanel() {
       <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h3 className="text-base font-semibold text-white">
-            Signature & Transaction Lab
+            {t("title")}
           </h3>
           <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-400">
-            Test wallet capabilities through one unified adapter surface:
-            message signing, typed-data signing, and demo transaction dispatch.
+            {t("description")}
           </p>
         </div>
 
@@ -118,11 +121,8 @@ export function IntentLabPanel() {
       <div className="grid gap-4 xl:grid-cols-2">
         <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-4">
           <div className="mb-3">
-            <h4 className="text-sm font-semibold text-white">Signature Lab</h4>
-            <p className="mt-1 text-xs leading-5 text-slate-400">
-              EVM supports personal_sign and EIP-712. Solana, BTC, and Sei
-              usually use ecosystem-specific message signing.
-            </p>
+            <h4 className="text-sm font-semibold text-white">{t("signatureTitle")}</h4>
+            <p className="mt-1 text-xs leading-5 text-slate-400">{t("signatureDescription")}</p>
           </div>
 
           <textarea
@@ -140,7 +140,7 @@ export function IntentLabPanel() {
                 disabled={isSigning}
                 onClick={() => sign({ kind: "personal_sign", message })}
               >
-                personal_sign
+                {t("personalSign")}
               </button>
             ) : null}
 
@@ -157,7 +157,7 @@ export function IntentLabPanel() {
                   })
                 }
               >
-                EIP-712
+                {t("typedDataSign")}
               </button>
             ) : null}
 
@@ -168,22 +168,24 @@ export function IntentLabPanel() {
                 disabled={isSigning}
                 onClick={handleSignMessage}
               >
-                Sign Message
+                {t("signMessage")}
               </button>
             ) : null}
           </div>
 
           <ResultBox
-            title="Signature Result"
-            emptyText="No signature result yet."
+            title={t("signatureResult")}
+            emptyText={t("noSignatureResult")}
             result={signResult}
             error={signError}
+            failedLabel={common("actionFailed")}
+            unknownErrorLabel={t("errorUnknown")}
             renderResult={(result) => (
               <div className="space-y-2">
-                <InfoLine label="wallet" value={result.walletName} />
-                <InfoLine label="address" value={result.address} />
-                <InfoLine label="message" value={result.payloadPreview} />
-                <InfoLine label="signature" value={result.signature} breakAll />
+                <InfoLine label={t("wallet")} value={result.walletName} />
+                <InfoLine label={t("address")} value={result.address} />
+                <InfoLine label={t("message")} value={result.payloadPreview} />
+                <InfoLine label={t("signature")} value={result.signature} breakAll />
               </div>
             )}
           />
@@ -191,27 +193,22 @@ export function IntentLabPanel() {
 
         <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-4">
           <div className="mb-3">
-            <h4 className="text-sm font-semibold text-white">
-              Transaction Lab
-            </h4>
-            <p className="mt-1 text-xs leading-5 text-slate-400">
-              EVM can send a native transfer. BTC is modeled as PSBT. Solana and
-              Sei are represented as program or chain-specific calls.
-            </p>
+            <h4 className="text-sm font-semibold text-white">{t("transactionTitle")}</h4>
+            <p className="mt-1 text-xs leading-5 text-slate-400">{t("transactionDescription")}</p>
           </div>
 
           <input
             value={to}
             onChange={(event) => setTo(event.target.value)}
             className="mb-3 w-full rounded-xl border border-slate-700 bg-slate-950 p-3 text-sm text-white outline-none transition focus:border-slate-500"
-            placeholder="Recipient address"
+            placeholder={t("recipientPlaceholder")}
           />
 
           <input
             value={value}
             onChange={(event) => setValue(event.target.value)}
             className="mb-3 w-full rounded-xl border border-slate-700 bg-slate-950 p-3 text-sm text-white outline-none transition focus:border-slate-500"
-            placeholder="Value"
+            placeholder={t("valuePlaceholder")}
           />
 
           <button
@@ -220,14 +217,16 @@ export function IntentLabPanel() {
             disabled={isSending || !adapter?.sendTransaction}
             onClick={handleSend}
           >
-            {isSending ? "Sending..." : "Send Demo Transaction"}
+            {isSending ? t("sending") : t("sendDemoTransaction")}
           </button>
 
           <ResultBox
-            title="Transaction Result"
-            emptyText="No transaction result yet."
+            title={t("transactionResult")}
+            emptyText={t("noTransactionResult")}
             result={txResult}
             error={txError}
+            failedLabel={common("actionFailed")}
+            unknownErrorLabel={t("errorUnknown")}
             renderResult={(result) => (
               <pre className="overflow-auto whitespace-pre-wrap break-all text-xs leading-5 text-slate-300">
                 {JSON.stringify(result, null, 2)}
@@ -242,7 +241,10 @@ export function IntentLabPanel() {
 
 type ResultBoxError = Error | MultiChainError | null | undefined;
 
-function getResultBoxErrorMessage(error: ResultBoxError) {
+function getResultBoxErrorMessage(
+  error: ResultBoxError,
+  unknownErrorLabel: string,
+) {
   if (!error) {
     return "";
   }
@@ -255,7 +257,7 @@ function getResultBoxErrorMessage(error: ResultBoxError) {
     return error.message;
   }
 
-  return "Unknown error";
+  return unknownErrorLabel;
 }
 
 function ResultBox<T>(props: {
@@ -263,9 +265,14 @@ function ResultBox<T>(props: {
   emptyText: string;
   result: T | null | undefined;
   error: ResultBoxError;
+  failedLabel: string;
+  unknownErrorLabel: string;
   renderResult: (result: T) => React.ReactNode;
 }) {
-  const errorMessage = getResultBoxErrorMessage(props.error);
+  const errorMessage = getResultBoxErrorMessage(
+    props.error,
+    props.unknownErrorLabel,
+  );
 
   return (
     <div className="rounded-xl border border-white/10 bg-slate-950 p-3">
@@ -277,7 +284,7 @@ function ResultBox<T>(props: {
         props.renderResult(props.result)
       ) : props.error ? (
         <div className="space-y-2 text-xs">
-          <div className="font-medium text-rose-300">Action failed</div>
+          <div className="font-medium text-rose-300">{props.failedLabel}</div>
           <div className="break-all text-slate-300">{errorMessage}</div>
         </div>
       ) : (

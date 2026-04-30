@@ -1,8 +1,8 @@
 import { getRequestConfig } from "next-intl/server";
 import { hasLocale } from "next-intl";
 import { defaultLocale, locales } from "@web3-frontend-labs/i18n/config";
-import enMessages from "@web3-frontend-labs/i18n/messages/en";
-import zhCnMessages from "@web3-frontend-labs/i18n/messages/zh-CN";
+import enMessages from "./messages/en.json";
+import zhCnMessages from "./messages/zh-CN.json";
 
 const messagesByLocale = {
   en: enMessages,

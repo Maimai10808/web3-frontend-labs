@@ -6,8 +6,12 @@ import {
   useWalletControlPanel,
 } from "@/hooks/multichain/use-wallet-control-panel";
 import { EcosystemSwitcher } from "./ecosystem-switcher";
+import { useTranslations } from "next-intl";
 
 export function WalletControlPanel() {
+  const t = useTranslations("multichainDemo.walletControl");
+  const common = useTranslations("multichainDemo.common");
+  const ecosystemT = useTranslations("multichainDemo.ecosystem");
   const {
     ecosystem,
     evmWalletOptions,
@@ -40,13 +44,8 @@ export function WalletControlPanel() {
       <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-4">
         <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h3 className="text-base font-semibold text-white">
-              Wallet Connect
-            </h3>
-            <p className="mt-1 text-sm leading-6 text-slate-400">
-              Select an ecosystem, choose a wallet, then connect through the
-              unified adapter layer.
-            </p>
+            <h3 className="text-base font-semibold text-white">{t("title")}</h3>
+            <p className="mt-1 text-sm leading-6 text-slate-400">{t("description")}</p>
           </div>
 
           <div className="sm:min-w-55">
@@ -56,13 +55,13 @@ export function WalletControlPanel() {
 
         <div className="mb-4 rounded-xl border border-white/10 bg-slate-950 p-3 text-sm text-slate-300">
           <div className="mb-1 text-xs uppercase tracking-wide text-slate-500">
-            Current Session
+            {t("currentSession")}
           </div>
 
           <div className="break-all">
             {unifiedWallet.account
               ? `${unifiedWallet.account.walletName} -> ${unifiedWallet.account.address.slice(0, 6)}...${unifiedWallet.account.address.slice(-4)}`
-              : `No ${ecosystem} wallet connected`}
+              : t("noWalletConnected", { ecosystem: ecosystemT(ecosystem) })}
           </div>
         </div>
 
@@ -108,8 +107,7 @@ export function WalletControlPanel() {
         {ecosystem === "ton" ? (
           <div className="grid gap-2">
             <p className="rounded-xl border border-yellow-500/20 bg-yellow-500/10 p-3 text-sm text-yellow-200">
-              TON is reserved in this demo. No real wallet integration is wired
-              yet.
+              {t("tonReserved")}
             </p>
           </div>
         ) : null}
@@ -120,7 +118,7 @@ export function WalletControlPanel() {
           disabled={isBusy}
           className="mt-4 rounded-xl bg-slate-700 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-slate-600 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          Disconnect
+          {t("disconnect")}
         </button>
 
         {unifiedWallet.status === "error" && unifiedWallet.error ? (
@@ -136,6 +134,9 @@ export function WalletControlPanel() {
         statusLabel={statusLabel}
         statusClassName={statusClassName}
         onSwitchNetwork={handleSwitchNetwork}
+        t={t}
+        common={common}
+        ecosystemT={ecosystemT}
       />
     </section>
   );
@@ -155,9 +156,11 @@ function EvmWalletConnector(props: {
   ) => void;
   onConnect: () => void;
 }) {
+  const t = useTranslations("multichainDemo.walletControl");
+  const common = useTranslations("multichainDemo.common");
   const selectedLabel =
     props.options.find((option) => option.id === props.selectedId)?.label ??
-    "EVM Wallet";
+    common("unknown");
 
   return (
     <div className="grid gap-3">
@@ -185,7 +188,9 @@ function EvmWalletConnector(props: {
         disabled={props.isBusy || !props.selectedId}
         className={activeButtonClassName("blue")}
       >
-        {props.selectedId ? `Connect ${selectedLabel}` : "Connect EVM Wallet"}
+        {props.selectedId
+          ? t("connectWallet", { wallet: selectedLabel })
+          : t("connectEvmWallet")}
       </button>
     </div>
   );
@@ -197,11 +202,13 @@ function BtcWalletConnector(props: {
   onSelect: (wallet: "unisat" | "okx") => void;
   onConnect: () => void;
 }) {
+  const t = useTranslations("multichainDemo.walletControl");
+  const common = useTranslations("multichainDemo.common");
   return (
     <div className="grid gap-3">
       <SelectedWalletBox
-        label="Selected BTC Wallet"
-        value={props.selectedWallet ?? "None"}
+        label={t("selectedBtcWallet")}
+        value={props.selectedWallet ?? common("none")}
       />
 
       <div className="grid gap-2 sm:grid-cols-2">
@@ -215,7 +222,7 @@ function BtcWalletConnector(props: {
               : inactiveButtonClassName
           }
         >
-          Select Unisat
+          {t("selectUnisat")}
         </button>
 
         <button
@@ -228,7 +235,7 @@ function BtcWalletConnector(props: {
               : inactiveButtonClassName
           }
         >
-          Select OKX BTC
+          {t("selectOkxBtc")}
         </button>
       </div>
 
@@ -238,7 +245,7 @@ function BtcWalletConnector(props: {
         disabled={props.isBusy || !props.selectedWallet}
         className={activeButtonClassName("blue")}
       >
-        Connect BTC Wallet
+        {t("connectBtcWallet")}
       </button>
     </div>
   );
@@ -251,15 +258,17 @@ function SolanaWalletConnector(props: {
   onSelect: (id: "phantom" | "solflare" | "okx" | "metamask") => void;
   onConnect: () => void;
 }) {
+  const t = useTranslations("multichainDemo.walletControl");
+  const common = useTranslations("multichainDemo.common");
   const selectedLabel =
     props.options.find((option) => option.id === props.selectedId)?.label ??
-    "Unknown";
+    common("unknown");
 
   return (
     <div className="grid gap-3">
       <SelectedWalletBox
-        label="Selected Solana Wallet"
-        value={props.selectedId ? selectedLabel : "None"}
+        label={t("selectedSolanaWallet")}
+        value={props.selectedId ? selectedLabel : common("none")}
       />
 
       <div className="grid gap-2 sm:grid-cols-2">
@@ -275,13 +284,13 @@ function SolanaWalletConnector(props: {
                 : inactiveButtonClassName
             }
           >
-            Select {walletOption.label}
+            {t("selectWallet", { wallet: walletOption.label })}
           </button>
         ))}
       </div>
 
       <p className="rounded-xl border border-white/10 bg-slate-950 p-3 text-sm text-slate-300">
-        Pick a Solana wallet first, then connect it.
+        {t("pickSolanaFirst")}
       </p>
 
       <button
@@ -291,8 +300,8 @@ function SolanaWalletConnector(props: {
         className={activeButtonClassName("violet")}
       >
         {props.selectedId
-          ? `Connect ${selectedLabel}`
-          : "Connect Solana Wallet"}
+          ? t("connectWallet", { wallet: selectedLabel })
+          : t("connectSolanaWallet")}
       </button>
     </div>
   );
@@ -308,15 +317,17 @@ function SeiWalletConnector(props: {
   onSelect: (wallet: "compass" | "keplr" | "leap") => void;
   onConnect: () => void;
 }) {
+  const t = useTranslations("multichainDemo.walletControl");
+  const common = useTranslations("multichainDemo.common");
   const selectedLabel =
     props.wallets.find((wallet) => wallet.type === props.selectedWallet)
-      ?.walletName ?? "Unknown";
+      ?.walletName ?? common("unknown");
 
   return (
     <div className="grid gap-3">
       <SelectedWalletBox
-        label="Selected Sei Wallet"
-        value={props.selectedWallet ? selectedLabel : "None"}
+        label={t("selectedSeiWallet")}
+        value={props.selectedWallet ? selectedLabel : common("none")}
       />
 
       <div className="grid gap-2 sm:grid-cols-3">
@@ -332,14 +343,14 @@ function SeiWalletConnector(props: {
                 : inactiveButtonClassName
             }
           >
-            Select {wallet.walletName}
+            {t("selectWallet", { wallet: wallet.walletName })}
           </button>
         ))}
       </div>
 
       {props.wallets.length === 0 ? (
         <p className="rounded-xl border border-rose-500/20 bg-rose-500/10 p-3 text-sm text-rose-200">
-          No Sei wallet detected. Install Compass, Keplr, or Leap.
+          {t("noSeiWalletDetected")}
         </p>
       ) : null}
 
@@ -350,8 +361,8 @@ function SeiWalletConnector(props: {
         className={activeButtonClassName("cyan")}
       >
         {props.selectedWallet
-          ? `Connect ${selectedLabel}`
-          : "Connect Sei Wallet"}
+          ? t("connectWallet", { wallet: selectedLabel })
+          : t("connectSeiWallet")}
       </button>
     </div>
   );
@@ -372,6 +383,9 @@ function NetworkStatusView(props: {
   statusLabel: string;
   statusClassName: string;
   onSwitchNetwork: () => void;
+  t: ReturnType<typeof useTranslations>;
+  common: ReturnType<typeof useTranslations>;
+  ecosystemT: ReturnType<typeof useTranslations>;
 }) {
   const { networkStatus } = props;
 
@@ -379,10 +393,11 @@ function NetworkStatusView(props: {
     <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-4">
       <div className="mb-4 flex items-start justify-between gap-4">
         <div>
-          <h3 className="text-base font-semibold text-white">Network Status</h3>
+          <h3 className="text-base font-semibold text-white">
+            {props.t("networkStatusTitle")}
+          </h3>
           <p className="mt-1 text-sm leading-6 text-slate-400">
-            Verify whether the selected wallet is connected to the expected
-            network.
+            {props.t("networkStatusDescription")}
           </p>
         </div>
 
@@ -395,25 +410,34 @@ function NetworkStatusView(props: {
 
       <div className="grid gap-3 sm:grid-cols-2">
         <InfoItem
-          label="Ecosystem"
-          value={formatNetworkValue(networkStatus?.ecosystem)}
+          label={props.ecosystemT("title")}
+          value={
+            networkStatus?.ecosystem
+              ? props.ecosystemT(
+                  networkStatus.ecosystem as "evm" | "solana" | "btc" | "sei" | "ton",
+                )
+              : props.common("notAvailable")
+          }
         />
-        <InfoItem label="Target Network" value={props.currentTargetName} />
         <InfoItem
-          label="Current Chain ID"
+          label={props.t("targetNetwork")}
+          value={props.currentTargetName}
+        />
+        <InfoItem
+          label={props.t("currentChainId")}
           value={formatNetworkValue(networkStatus?.currentChainId)}
         />
         <InfoItem
-          label="Expected Chain ID"
+          label={props.t("expectedChainId")}
           value={formatNetworkValue(networkStatus?.expectedChainId)}
         />
         <InfoItem
-          label="Switch Required"
-          value={networkStatus?.switchRequired ? "Yes" : "No"}
+          label={props.t("switchRequired")}
+          value={networkStatus?.switchRequired ? props.common("yes") : props.common("no")}
         />
         <InfoItem
-          label="Switch Supported"
-          value={networkStatus?.switchAvailable ? "Yes" : "No"}
+          label={props.t("switchSupported")}
+          value={networkStatus?.switchAvailable ? props.common("yes") : props.common("no")}
         />
       </div>
 
@@ -423,25 +447,28 @@ function NetworkStatusView(props: {
           onClick={props.onSwitchNetwork}
           className="mt-4 w-full rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-500 sm:w-auto"
         >
-          Switch to target network
+          {props.t("switchNetwork")}
         </button>
       ) : null}
 
       {networkStatus?.switchRequired && !networkStatus.switchAvailable ? (
         <div className="mt-4 rounded-xl border border-amber-500/20 bg-amber-500/10 p-3 text-sm text-amber-100">
-          This wallet does not expose an automatic network switching method.
-          Please switch the network manually inside the wallet extension.
+          {props.t("manualSwitchHint")}
         </div>
       ) : null}
 
       {!networkStatus?.switchAvailable && networkStatus?.ecosystem !== "evm" ? (
         <p className="mt-4 text-xs leading-5 text-slate-400">
-          {networkStatus?.ecosystem} usually does not follow the EVM-style{" "}
+          {props.t("nonEvmSwitchHint", {
+            ecosystem: networkStatus?.ecosystem
+              ? props.ecosystemT(
+                  networkStatus.ecosystem as "evm" | "solana" | "btc" | "sei" | "ton",
+                )
+              : props.common("unknown"),
+          })}{" "}
           <span className="rounded bg-slate-800 px-1.5 py-0.5 text-slate-300">
             switchChain
-          </span>{" "}
-          model. Network context is usually controlled by the wallet itself or
-          by the provider injected into the page.
+          </span>
         </p>
       ) : null}
     </div>

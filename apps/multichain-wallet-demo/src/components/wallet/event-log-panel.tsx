@@ -2,11 +2,13 @@
 
 import { useMemo } from "react";
 import { useMultichainLogs } from "@/hooks/multichain/use-multichain-logs";
+import { useTranslations } from "next-intl";
 
 const MAX_VISIBLE_LOGS = 6;
 
 export function EventLogPanel() {
   const { logs } = useMultichainLogs();
+  const t = useTranslations("multichainDemo.eventLog");
 
   const visibleLogs = useMemo(() => {
     return logs.slice(-MAX_VISIBLE_LOGS);
@@ -14,11 +16,11 @@ export function EventLogPanel() {
 
   return (
     <section className="rounded-2xl border border-white/10 bg-slate-900 p-4 shadow-sm">
-      <h3 className="mb-3 text-base font-semibold">Event Log</h3>
+      <h3 className="mb-3 text-base font-semibold">{t("title")}</h3>
 
       <div className="grid gap-2">
         {visibleLogs.length === 0 ? (
-          <p className="text-sm text-slate-400">No events yet.</p>
+          <p className="text-sm text-slate-400">{t("empty")}</p>
         ) : null}
 
         {visibleLogs.map((log) => (

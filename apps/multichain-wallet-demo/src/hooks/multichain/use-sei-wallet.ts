@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useMemo } from "react";
+import { useTranslations } from "next-intl";
 import { create } from "zustand";
 
 import type { WalletAccount, WalletAdapter } from "@/lib/multichain/types";
@@ -121,7 +122,10 @@ function getDetectedSeiWallets() {
   return wallets;
 }
 
-async function getAddressFromProvider(provider: SeiWindowProvider) {
+async function getAddressFromProvider(
+  provider: SeiWindowProvider,
+  noAccountMessage: string,
+) {
   const { chainId } = seiChainConfiguration;
 
   if (provider.getKey) {
@@ -141,7 +145,7 @@ async function getAddressFromProvider(provider: SeiWindowProvider) {
   const accounts = await signer?.getAccounts?.();
   const address = accounts?.[0]?.address;
   if (!address) {
-    throw new Error("No Sei account returned from wallet");
+    throw new Error(noAccountMessage);
   }
 
   return address;
@@ -158,6 +162,7 @@ export function useSeiWallet(): {
   selectedWallet: SupportedSeiWallet | null;
   selectWallet: (wallet: SupportedSeiWallet) => void;
 } {
+  const t = useTranslations("multichainDemo.seiWallet");
   const session = useSeiWalletStore((state) => state.session);
   const selectedWallet = useSeiWalletStore((state) => state.selectedWallet);
   const setSession = useSeiWalletStore((state) => state.setSession);
@@ -174,7 +179,7 @@ export function useSeiWallet(): {
     );
 
     if (!selectedWallet) {
-      throw new Error("Select a Sei wallet before connecting.");
+      throw new Error(t("errorSelectWallet"));
     }
 
     const selectedProvider = detectedWallets.find(
@@ -182,9 +187,7 @@ export function useSeiWallet(): {
     );
 
     if (!selectedProvider) {
-      throw new Error(
-        "Selected Sei wallet is not installed. Install Compass, Keplr, or Leap.",
-      );
+      throw new Error(t("errorWalletNotInstalled"));
     }
 
     const { provider, walletName } = selectedProvider;
@@ -193,11 +196,10 @@ export function useSeiWallet(): {
         await provider.experimentalSuggestChain(getSeiPacificChainInfo());
       } catch (error) {
         debugSei("suggest chain failed", error);
-        throw new Error(
-          `Failed to suggest Sei chain to ${walletName}: ${
-            error instanceof Error ? error.message : "unknown error"
-          }`,
-        );
+        throw new Error(t("errorSuggestChain", {
+          wallet: walletName,
+          message: error instanceof Error ? error.message : "unknown error",
+        }));
       }
     }
 
@@ -205,14 +207,13 @@ export function useSeiWallet(): {
       await provider.enable?.(seiChainConfiguration.chainId);
     } catch (error) {
       debugSei("enable failed", error);
-      throw new Error(
-        `Failed to enable ${walletName} for pacific-1: ${
-          error instanceof Error ? error.message : "unknown error"
-        }`,
-      );
+      throw new Error(t("errorEnableChain", {
+        wallet: walletName,
+        message: error instanceof Error ? error.message : "unknown error",
+      }));
     }
 
-    const address = await getAddressFromProvider(provider);
+    const address = await getAddressFromProvider(provider, t("errorNoAccount"));
     debugSei("normalized account", {
       walletName,
       address,
@@ -233,7 +234,7 @@ export function useSeiWallet(): {
       providerName: walletName,
       networkId: seiChainConfiguration.chainId,
     } satisfies WalletAccount;
-  }, [detectedWallets, selectedWallet, setSession]);
+  }, [detectedWallets, selectedWallet, setSession, t]);
 
   const disconnectWallet = useCallback(() => {
     setSession(null);

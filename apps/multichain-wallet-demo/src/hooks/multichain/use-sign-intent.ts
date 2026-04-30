@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import type {
   MultiChainError,
   SignIntentInput,
@@ -13,6 +14,8 @@ import { useMultichainLogs } from "./use-multichain-logs";
 
 export function useSignIntent() {
   const { connectedAdapter: adapter } = useWalletAccount();
+  const t = useTranslations("multichainDemo.signIntent");
+  const ecosystemT = useTranslations("multichainDemo.ecosystem");
   const { pushLog } = useMultichainLogs();
   const setDebugPayload = useMultichainDemoStore(
     (state) => state.setDebugPayload,
@@ -25,7 +28,7 @@ export function useSignIntent() {
   const sign = async (input: SignIntentInput) => {
     if (!adapter) {
       const nextError = normalizeMultiChainError(
-        new Error("Adapter not ready"),
+        new Error(t("errorAdapterNotReady")),
       );
       setError(nextError);
       setDebugPayload("lastError", nextError);
@@ -42,8 +45,11 @@ export function useSignIntent() {
       setDebugPayload("lastSignResult", next);
       pushLog({
         level: "success",
-        title: "Signature Success",
-        message: `${adapter.ecosystem} -> ${next.kind}`,
+        title: t("logSuccessTitle"),
+        message: t("logSuccessMessage", {
+          ecosystem: ecosystemT(adapter.ecosystem),
+          kind: next.kind,
+        }),
       });
       return next;
     } catch (err) {
@@ -52,7 +58,7 @@ export function useSignIntent() {
       setDebugPayload("lastError", nextError);
       pushLog({
         level: "error",
-        title: "Signature Failed",
+        title: t("logErrorTitle"),
         message: nextError.message,
       });
       throw nextError;

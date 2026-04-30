@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import type {
   MultiChainError,
   TransactionIntentInput,
@@ -13,6 +14,8 @@ import { useMultichainLogs } from "./use-multichain-logs";
 
 export function useSendDemoTransaction() {
   const { connectedAdapter: adapter } = useWalletAccount();
+  const t = useTranslations("multichainDemo.sendIntent");
+  const ecosystemT = useTranslations("multichainDemo.ecosystem");
   const { pushLog } = useMultichainLogs();
   const setDebugPayload = useMultichainDemoStore(
     (state) => state.setDebugPayload,
@@ -25,7 +28,7 @@ export function useSendDemoTransaction() {
   const send = async (input: TransactionIntentInput) => {
     if (!adapter?.sendTransaction) {
       const nextError = normalizeMultiChainError(
-        new Error("Transaction is not supported by current adapter"),
+        new Error(t("errorUnsupportedTransaction")),
         adapter?.ecosystem,
       );
       setError(nextError);
@@ -43,8 +46,11 @@ export function useSendDemoTransaction() {
       setDebugPayload("lastTxResult", next);
       pushLog({
         level: "success",
-        title: "Transaction Submitted",
-        message: `${adapter.ecosystem} -> ${next.txHash}`,
+        title: t("logSuccessTitle"),
+        message: t("logSuccessMessage", {
+          ecosystem: ecosystemT(adapter.ecosystem),
+          txHash: next.txHash,
+        }),
       });
       return next;
     } catch (err) {
@@ -53,7 +59,7 @@ export function useSendDemoTransaction() {
       setDebugPayload("lastError", nextError);
       pushLog({
         level: "error",
-        title: "Transaction Failed",
+        title: t("logErrorTitle"),
         message: nextError.message,
       });
       throw nextError;

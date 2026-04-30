@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import {
   Activity,
   BadgeCheck,
@@ -7,6 +8,8 @@ import {
   Link2,
   ShieldCheck,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { LanguageSwitcher } from "@web3-frontend-labs/ui";
 
 type UnifiedWalletAccount = {
   namespace?: string;
@@ -25,27 +28,72 @@ type MultichainOverviewProps = {
   unifiedWallet: UnifiedWallet;
 };
 
+type SupportedNamespace = "evm" | "solana" | "btc" | "sei" | "ton";
+
+function isSupportedNamespace(value: string): value is SupportedNamespace {
+  return (
+    value === "evm" ||
+    value === "solana" ||
+    value === "btc" ||
+    value === "sei" ||
+    value === "ton"
+  );
+}
+
 export function MultichainOverview({ unifiedWallet }: MultichainOverviewProps) {
   const account = unifiedWallet.account;
   const activeNamespace = account?.namespace ?? "disconnected";
 
+  const t = useTranslations("multichainDemo.overview");
+  const common = useTranslations("multichainDemo.common");
+  const ecosystemT = useTranslations("multichainDemo.ecosystem");
+
+  const statusLabel =
+    unifiedWallet.status === "idle"
+      ? common("idle")
+      : unifiedWallet.status === "connecting"
+        ? common("connecting")
+        : unifiedWallet.status === "connected"
+          ? common("connected")
+          : unifiedWallet.status === "error"
+            ? common("error")
+            : common("disconnected");
+
+  const activeNamespaceLabel =
+    activeNamespace === "disconnected"
+      ? common("disconnected")
+      : isSupportedNamespace(activeNamespace)
+        ? ecosystemT(activeNamespace)
+        : activeNamespace;
+
+  const accountNamespaceLabel = account?.namespace
+    ? isSupportedNamespace(account.namespace)
+      ? ecosystemT(account.namespace)
+      : account.namespace
+    : common("notAvailable");
+
   return (
     <section className="overflow-hidden rounded-3xl border border-white/10 bg-slate-900 shadow-sm">
       <div className="relative border-b border-white/10 bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.25),transparent_36%),radial-gradient(circle_at_top_right,rgba(168,85,247,0.18),transparent_34%)] p-6 sm:p-8">
-        <div className="max-w-3xl">
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-blue-400/30 bg-blue-400/10 px-3 py-1 text-xs font-medium uppercase tracking-[0.18em] text-blue-200">
-            <Layers3 className="size-3.5" />
-            Multichain Wallet Lab
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+          <div className="max-w-3xl">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-blue-400/30 bg-blue-400/10 px-3 py-1 text-xs font-medium uppercase tracking-[0.18em] text-blue-200">
+              <Layers3 className="size-3.5" />
+              {t("eyebrow")}
+            </div>
+
+            <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+              {t("title")}
+            </h1>
+
+            <p className="mt-3 max-w-220 text-sm leading-6 text-slate-300 sm:text-base sm:leading-7">
+              {t("description")}
+            </p>
           </div>
 
-          <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">
-            multichain-wallet-demo
-          </h1>
-
-          <p className="mt-3 max-w-220 text-sm leading-6 text-slate-300 sm:text-base sm:leading-7">
-            这个 Demo 展示的是多链钱包接入的工程抽象。重点不是“连上钱包”，
-            而是把连接、网络识别、签名适配、交易适配、账户绑定和错误归一拆成可维护的前端链路。
-          </p>
+          <div className="shrink-0 lg:pt-1">
+            <LanguageSwitcher />
+          </div>
         </div>
       </div>
 
@@ -55,46 +103,54 @@ export function MultichainOverview({ unifiedWallet }: MultichainOverviewProps) {
             <div>
               <div className="flex items-center gap-2 text-base font-semibold text-white">
                 <Activity className="size-4 text-blue-300" />
-                Current Wallet Session
+                {t("sessionTitle")}
               </div>
               <p className="mt-1 text-sm text-slate-400">
-                当前统一钱包状态。页面只消费标准化后的 account、chain、wallet 和
-                error。
+                {t("sessionDescription")}
               </p>
             </div>
 
             <span className="inline-flex w-fit rounded-full border border-white/10 bg-slate-800 px-3 py-1 text-xs font-medium uppercase tracking-wide text-slate-300">
-              Active: {activeNamespace}
+              {t("active", {
+                namespace: activeNamespaceLabel,
+              })}
             </span>
           </div>
 
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
             <SessionStat
-              label="Status"
-              value={unifiedWallet.status}
+              label={t("status")}
+              value={statusLabel}
               intent={
                 unifiedWallet.status === "connected" ? "success" : "default"
               }
             />
 
-            <SessionStat label="Namespace" value={account?.namespace ?? "-"} />
-
-            <SessionStat label="Wallet" value={account?.walletName ?? "-"} />
+            <SessionStat label={t("namespace")} value={accountNamespaceLabel} />
 
             <SessionStat
-              label="Address"
-              value={account?.address ?? "-"}
+              label={t("wallet")}
+              value={account?.walletName ?? common("notAvailable")}
+            />
+
+            <SessionStat
+              label={t("address")}
+              value={account?.address ?? common("notAvailable")}
               truncate
             />
 
             <SessionStat
-              label="Chain ID"
-              value={account?.chainId ? String(account.chainId) : "-"}
+              label={t("chainId")}
+              value={
+                account?.chainId
+                  ? String(account.chainId)
+                  : common("notAvailable")
+              }
             />
 
             <SessionStat
-              label="Error"
-              value={unifiedWallet.error ?? "-"}
+              label={t("error")}
+              value={unifiedWallet.error ?? common("notAvailable")}
               intent={unifiedWallet.error ? "error" : "default"}
               truncate
             />
@@ -104,32 +160,32 @@ export function MultichainOverview({ unifiedWallet }: MultichainOverviewProps) {
         <div className="rounded-2xl border border-white/10 bg-slate-950/70 p-5">
           <div className="mb-4 flex items-center gap-2 text-base font-semibold text-white">
             <ShieldCheck className="size-4 text-emerald-300" />
-            Interview Talking Points
+            {t("talkingPointsTitle")}
           </div>
 
           <div className="grid gap-3">
             <TalkingPoint
               icon={<Layers3 className="size-4" />}
-              title="多链不是加 chainId"
-              description="EVM、Solana、BTC、Sei 的账户模型、签名模型、交易模型都不同。"
+              title={t("point1Title")}
+              description={t("point1Description")}
             />
 
             <TalkingPoint
               icon={<Link2 className="size-4" />}
-              title="页面不直接处理链逻辑"
-              description="页面通过 WalletAdapter 消费统一能力，不关心底层 SDK 的差异。"
+              title={t("point2Title")}
+              description={t("point2Description")}
             />
 
             <TalkingPoint
               icon={<BadgeCheck className="size-4" />}
-              title="连接态和业务绑定态分离"
-              description="钱包连接成功不等于业务账号绑定完成，这两层状态需要独立建模。"
+              title={t("point3Title")}
+              description={t("point3Description")}
             />
 
             <TalkingPoint
               icon={<ShieldCheck className="size-4" />}
-              title="错误需要统一归一"
-              description="不同钱包 SDK 的原始报错应统一成 MultiChainError，避免 UI 到处写分支。"
+              title={t("point4Title")}
+              description={t("point4Description")}
             />
           </div>
         </div>
@@ -169,7 +225,7 @@ function SessionStat(props: {
 }
 
 function TalkingPoint(props: {
-  icon: React.ReactNode;
+  icon: ReactNode;
   title: string;
   description: string;
 }) {
