@@ -29,6 +29,7 @@ import type {
   WalletAdapter,
 } from "@/lib/multichain/types";
 import { useSeiWallet } from "./use-sei-wallet";
+import { useMultichainDemoStore } from "@/store/multichain-demo-store";
 
 function debugUnified(...args: unknown[]) {
   if (process.env.NODE_ENV === "development") {
@@ -265,6 +266,7 @@ function resolveEvmConnector(
 
 export function useWalletAccount() {
   const { ecosystem } = useActiveEcosystem();
+  const unifiedWallet = useMultichainDemoStore((state) => state.unifiedWallet);
   const [selectedEvmWalletId, setSelectedEvmWalletId] =
     useState<EvmWalletId | null>(null);
   const [selectedSolanaWalletId, setSelectedSolanaWalletId] =
@@ -486,6 +488,15 @@ export function useWalletAccount() {
     return null;
   }, [btcAdapter, ecosystem, evmAdapter, seiAdapter, solanaAdapter]);
 
+  const connectedEcosystem = unifiedWallet.account?.namespace ?? null;
+  const connectedAdapter = useMemo<WalletAdapter | null>(() => {
+    if (connectedEcosystem === "evm") return evmAdapter;
+    if (connectedEcosystem === "solana") return solanaAdapter;
+    if (connectedEcosystem === "btc") return btcAdapter;
+    if (connectedEcosystem === "sei") return seiAdapter;
+    return null;
+  }, [btcAdapter, connectedEcosystem, evmAdapter, seiAdapter, solanaAdapter]);
+
   const currentConnection = useMemo<UnifiedWalletAccount | null>(() => {
     if (ecosystem === "evm" && account.isConnected && account.address) {
       return {
@@ -561,7 +572,9 @@ export function useWalletAccount() {
 
   return {
     adapter,
+    connectedAdapter,
     ecosystem,
+    connectedEcosystem,
     currentConnection,
     evmWalletOptions,
     selectedEvmWalletId,

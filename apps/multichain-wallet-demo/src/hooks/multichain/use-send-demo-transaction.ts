@@ -12,7 +12,7 @@ import { useMultichainDemoStore } from "@/store/multichain-demo-store";
 import { useMultichainLogs } from "./use-multichain-logs";
 
 export function useSendDemoTransaction() {
-  const { adapter } = useWalletAccount();
+  const { connectedAdapter: adapter } = useWalletAccount();
   const { pushLog } = useMultichainLogs();
   const setDebugPayload = useMultichainDemoStore(
     (state) => state.setDebugPayload,

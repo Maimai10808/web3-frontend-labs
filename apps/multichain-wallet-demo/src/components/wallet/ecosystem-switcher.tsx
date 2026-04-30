@@ -3,11 +3,17 @@
 import { ECOSYSTEM_OPTIONS } from "@/lib/multichain/chains";
 import { useActiveEcosystem } from "@/hooks/multichain/use-active-ecosystem";
 
-export function EcosystemSwitcher() {
+export function EcosystemSwitcher({ compact = false }: { compact?: boolean }) {
   const { ecosystem, setEcosystem } = useActiveEcosystem();
 
   return (
-    <section className="rounded-2xl border border-white/10 bg-slate-900 p-4 shadow-sm">
+    <section
+      className={
+        compact
+          ? ""
+          : "rounded-2xl border border-white/10 bg-slate-900 p-4 shadow-sm"
+      }
+    >
       <h3 className="mb-3 text-base font-semibold">Ecosystem</h3>
       <div className="flex flex-wrap gap-2">
         {ECOSYSTEM_OPTIONS.map((item) => (

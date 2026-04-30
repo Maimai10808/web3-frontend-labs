@@ -1,18 +1,27 @@
 "use client";
 
+import { useMemo } from "react";
 import { useMultichainLogs } from "@/hooks/multichain/use-multichain-logs";
+
+const MAX_VISIBLE_LOGS = 6;
 
 export function EventLogPanel() {
   const { logs } = useMultichainLogs();
 
+  const visibleLogs = useMemo(() => {
+    return logs.slice(-MAX_VISIBLE_LOGS);
+  }, [logs]);
+
   return (
     <section className="rounded-2xl border border-white/10 bg-slate-900 p-4 shadow-sm">
       <h3 className="mb-3 text-base font-semibold">Event Log</h3>
+
       <div className="grid gap-2">
-        {logs.length === 0 ? (
+        {visibleLogs.length === 0 ? (
           <p className="text-sm text-slate-400">No events yet.</p>
         ) : null}
-        {logs.map((log) => (
+
+        {visibleLogs.map((log) => (
           <div
             key={log.id}
             className={
