@@ -73,3 +73,15 @@ export type TokenLaunchEvent =
       message: string;
       reason?: string;
     };
+
+export type TokenInfo = {
+  tokenAddress: string;
+  creator: string;
+  owner: string;
+  name: string;
+  symbol: string;
+  totalSupply: string;
+  maxSupply: string;
+  metadataUrl: string;
+  createdAt: number;
+};
