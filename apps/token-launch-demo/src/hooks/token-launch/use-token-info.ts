@@ -50,7 +50,7 @@ export function useTokenInfo({
         address: tokenFactoryAddress,
         functionName: "launchRecordByToken",
         args: [normalizedTokenAddress],
-      })) as LaunchRecord;
+      })) as unknown as LaunchRecord;
 
       const [name, symbol, totalSupply, owner, metadataURI] = await Promise.all(
         [

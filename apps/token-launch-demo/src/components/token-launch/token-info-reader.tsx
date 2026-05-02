@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTokenInfo } from "@/hooks/token-launch/use-token-info";
 
 type TokenInfoReaderProps = {
@@ -11,6 +11,11 @@ export function TokenInfoReader({
   defaultTokenAddress = "",
 }: TokenInfoReaderProps) {
   const [inputValue, setInputValue] = useState(defaultTokenAddress);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setInputValue(defaultTokenAddress);
+  }, [defaultTokenAddress]);
 
   const { tokenInfo, isLoadingTokenInfo, tokenInfoError, refetchTokenInfo } =
     useTokenInfo({

@@ -1,7 +1,16 @@
 import type { z } from "zod";
 import type { tokenLaunchFormSchema, tokenMetadataSchema } from "./schema";
 
-export type TokenLaunchFormValues = z.input<typeof tokenLaunchFormSchema>;
+export type TokenLaunchFormValues = {
+  tokenName: string;
+  tokenSymbol: string;
+  description: string;
+  website: string;
+  twitter: string;
+  telegram: string;
+  logoFile: File | null;
+};
+
 export type ValidatedTokenLaunchFormValues = z.output<
   typeof tokenLaunchFormSchema
 >;
@@ -32,6 +41,18 @@ export type CreateTokenResult = {
   txHash: string;
   tokenAddress: string;
   metadataUrl: string;
+};
+
+export type TokenInfo = {
+  tokenAddress: string;
+  creator: string;
+  owner: string;
+  name: string;
+  symbol: string;
+  totalSupply: string;
+  maxSupply: string;
+  metadataUrl: string;
+  createdAt: number;
 };
 
 export type TokenLaunchEvent =
@@ -73,15 +94,3 @@ export type TokenLaunchEvent =
       message: string;
       reason?: string;
     };
-
-export type TokenInfo = {
-  tokenAddress: string;
-  creator: string;
-  owner: string;
-  name: string;
-  symbol: string;
-  totalSupply: string;
-  maxSupply: string;
-  metadataUrl: string;
-  createdAt: number;
-};
