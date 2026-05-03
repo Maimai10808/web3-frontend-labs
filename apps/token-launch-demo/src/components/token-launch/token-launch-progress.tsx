@@ -9,10 +9,11 @@ import {
   UploadCloud,
   Wallet,
 } from "lucide-react";
-import type {
-  TokenLaunchProgressItem,
-  TokenLaunchStep,
-} from "@/lib/token-launch/types";
+import type { TokenLaunchStep } from "@/lib/token-launch/types";
+import {
+  useTokenLaunchProgress,
+  type TokenLaunchProgressViewItem,
+} from "@/hooks/token-launch/use-token-launch-progress";
 
 type TokenLaunchProgressProps = {
   step: TokenLaunchStep;
@@ -21,118 +22,14 @@ type TokenLaunchProgressProps = {
   metadataURI?: string | null;
 };
 
-const stepOrder: TokenLaunchStep[] = [
-  "logo_uploading",
-  "metadata_building",
-  "metadata_uploading",
-  "wallet_confirming",
-  "tx_pending",
-  "tx_confirming",
-  "success",
-];
-
-const stepMeta: Record<
-  TokenLaunchStep,
-  {
-    label: string;
-    description: string;
-    activeDescription: string;
-    icon: "upload" | "json" | "wallet" | "radio" | "success";
-  }
-> = {
-  idle: {
-    label: "Ready",
-    description: "Fill the form and choose a logo to launch.",
-    activeDescription: "Ready to launch.",
-    icon: "upload",
-  },
-  logo_uploading: {
-    label: "Logo upload",
-    description: "Logo will be pinned to IPFS.",
-    activeDescription: "Uploading logo to IPFS...",
-    icon: "upload",
-  },
-  metadata_building: {
-    label: "Build metadata",
-    description: "Token metadata JSON will be generated.",
-    activeDescription: "Building token metadata...",
-    icon: "json",
-  },
-  metadata_uploading: {
-    label: "Metadata upload",
-    description: "Metadata JSON will be pinned to IPFS.",
-    activeDescription: "Uploading metadata JSON to IPFS...",
-    icon: "json",
-  },
-  wallet_confirming: {
-    label: "Wallet confirmation",
-    description: "Wallet signature is required.",
-    activeDescription: "Waiting for wallet confirmation...",
-    icon: "wallet",
-  },
-  tx_pending: {
-    label: "Transaction submitted",
-    description: "Transaction hash received.",
-    activeDescription: "Transaction submitted. Waiting for confirmation...",
-    icon: "radio",
-  },
-  tx_confirming: {
-    label: "Receipt confirmation",
-    description: "Waiting for transaction receipt.",
-    activeDescription: "Waiting for transaction receipt...",
-    icon: "radio",
-  },
-  success: {
-    label: "Token launched",
-    description: "Token address decoded from chain event.",
-    activeDescription: "Token created successfully.",
-    icon: "success",
-  },
-  error: {
-    label: "Launch failed",
-    description: "A launch step failed.",
-    activeDescription: "Token launch failed.",
-    icon: "radio",
-  },
-};
-
-function getProgressItems(
-  step: TokenLaunchStep,
-): TokenLaunchProgressItem[] {
-  const activeIndex = stepOrder.indexOf(step);
-
-  return stepOrder.map((key, index) => {
-    const meta = stepMeta[key];
-    let status: TokenLaunchProgressItem["status"] = "idle";
-
-    if (step === "error") {
-      status = index <= Math.max(activeIndex, 0) ? "error" : "idle";
-    } else if (step === "success") {
-      status = "done";
-    } else if (index < activeIndex) {
-      status = "done";
-    } else if (index === activeIndex) {
-      status = "active";
-    }
-
-    return {
-      key,
-      label: meta.label,
-      description:
-        status === "active" ? meta.activeDescription : meta.description,
-      status,
-    };
-  });
-}
-
 export function TokenLaunchProgress({
   step,
   errorMessage,
   txHash,
   metadataURI,
 }: TokenLaunchProgressProps) {
-  const items = getProgressItems(step);
-  const currentMeta = stepMeta[step];
+  const { currentDescription, items, statusClass, statusLabel } =
+    useTokenLaunchProgress(step);
 
   return (
     <section className="rounded-2xl border border-white/10 bg-gradient-to-br from-gray-900 via-gray-900 to-gray-950 p-4 shadow-2xl shadow-black/20">
@@ -141,13 +38,9 @@ export function TokenLaunchProgress({
           <h3 className="text-base font-semibold text-white">
             Launch Progress
           </h3>
-          <p className="mt-1 text-sm text-gray-400">
-            {step === "idle"
-              ? currentMeta.description
-              : currentMeta.activeDescription}
-          </p>
+          <p className="mt-1 text-sm text-gray-400">{currentDescription}</p>
         </div>
-        <StatusPill step={step} />
+        <StatusPill className={statusClass} label={statusLabel} />
       </div>
 
       <div className="grid gap-3">
@@ -195,7 +88,7 @@ export function TokenLaunchProgress({
   );
 }
 
-function StepIcon({ item }: { item: TokenLaunchProgressItem }) {
+function StepIcon({ item }: { item: TokenLaunchProgressViewItem }) {
   if (item.status === "active") {
     return (
       <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-500/20 text-blue-200">
@@ -221,32 +114,27 @@ function StepIcon({ item }: { item: TokenLaunchProgressItem }) {
   }
 
   const iconClass = "h-4 w-4";
-  const meta = stepMeta[item.key];
-
   return (
     <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/5 text-gray-500">
-      {meta.icon === "upload" ? <UploadCloud className={iconClass} /> : null}
-      {meta.icon === "json" ? <FileJson className={iconClass} /> : null}
-      {meta.icon === "wallet" ? <Wallet className={iconClass} /> : null}
-      {meta.icon === "radio" ? <RadioTower className={iconClass} /> : null}
-      {meta.icon === "success" ? <CheckCircle2 className={iconClass} /> : null}
+      {item.icon === "upload" ? <UploadCloud className={iconClass} /> : null}
+      {item.icon === "json" ? <FileJson className={iconClass} /> : null}
+      {item.icon === "wallet" ? <Wallet className={iconClass} /> : null}
+      {item.icon === "radio" ? <RadioTower className={iconClass} /> : null}
+      {item.icon === "success" ? <CheckCircle2 className={iconClass} /> : null}
     </div>
   );
 }
 
-function StatusPill({ step }: { step: TokenLaunchStep }) {
-  const className =
-    step === "success"
-      ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-100"
-      : step === "error"
-        ? "border-red-500/30 bg-red-500/10 text-red-100"
-        : step === "idle"
-          ? "border-white/10 bg-white/5 text-gray-300"
-          : "border-blue-500/30 bg-blue-500/10 text-blue-100";
-
+function StatusPill({
+  className,
+  label,
+}: {
+  className: string;
+  label: string;
+}) {
   return (
     <div className={`rounded-full border px-3 py-1 text-xs ${className}`}>
-      {step.replaceAll("_", " ")}
+      {label}
     </div>
   );
 }

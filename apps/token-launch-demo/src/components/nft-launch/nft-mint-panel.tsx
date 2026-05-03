@@ -1,25 +1,8 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useMemo, useState } from "react";
-import { useForm, useWatch } from "react-hook-form";
-import { useAccount } from "wagmi";
 import type { Address } from "viem";
 
-import { useMintNft } from "@/hooks/nft-launch/use-mint-nft";
-import { useUploadNftImage } from "@/hooks/nft-launch/use-upload-nft-image";
-import { useUploadNftMetadata } from "@/hooks/nft-launch/use-upload-nft-metadata";
-import { buildNftMetadata } from "@/lib/nft-launch/build-nft-metadata";
-import {
-  nftMintSchema,
-  type NftMintFormInput,
-  type NftMintFormValues,
-} from "@/lib/nft-launch/schema";
-import type {
-  NftAttribute,
-  NftMetadata,
-  NftMintResult,
-} from "@/lib/nft-launch/types";
+import { useNftMintPanel } from "@/hooks/nft-launch/use-nft-mint-panel";
 import { NftMetadataPreview } from "./nft-metadata-preview";
 import { NftMintResultCard } from "./nft-mint-result-card";
 
@@ -28,155 +11,22 @@ type NftMintPanelProps = {
   mintPrice: bigint;
 };
 
-function parseAttributes(attributesText?: string): NftAttribute[] {
-  if (!attributesText?.trim()) {
-    return [];
-  }
-
-  return attributesText
-    .split("\n")
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .map((line) => {
-      const [traitType, ...valueParts] = line.split(":");
-      const rawValue = valueParts.join(":").trim();
-      const numericValue = Number(rawValue);
-
-      return {
-        trait_type: traitType.trim(),
-        value:
-          rawValue && Number.isFinite(numericValue) ? numericValue : rawValue,
-      };
-    })
-    .filter((attribute) => {
-      return (
-        attribute.trait_type.length > 0 && String(attribute.value).length > 0
-      );
-    });
-}
-
 export function NftMintPanel({
   collectionAddress,
   mintPrice,
 }: NftMintPanelProps) {
-  const account = useAccount();
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [metadataPreview, setMetadataPreview] = useState<NftMetadata | null>(
-    null,
-  );
-  const [mintResult, setMintResult] = useState<NftMintResult | null>(null);
-  const [localError, setLocalError] = useState<string | null>(null);
-
-  const mintNft = useMintNft();
   const {
-    uploadNftImage,
-    uploadedNftImage,
-    isUploadingNftImage,
-    uploadNftImageError,
-  } = useUploadNftImage();
-  const {
-    uploadNftMetadata,
-    uploadedNftMetadata,
-    isUploadingNftMetadata,
-    uploadNftMetadataError,
-  } = useUploadNftMetadata();
-
-  const form = useForm<NftMintFormValues, unknown, NftMintFormInput>({
-    resolver: zodResolver(nftMintSchema),
-    defaultValues: {
-      receiver: account.address ?? "",
-      name: "",
-      description: "",
-      externalUrl: "",
-      attributesText: "",
-      customTokenURI: "",
-    },
-    mode: "onChange",
-  });
-
-  const customTokenURI = useWatch({
-    control: form.control,
-    name: "customTokenURI",
-  });
-  const advancedTokenURI = customTokenURI?.trim();
-  const isBusy =
-    mintNft.isPending || isUploadingNftImage || isUploadingNftMetadata;
-  const combinedError = useMemo(() => {
-    return (
-      localError ??
-      uploadNftImageError?.message ??
-      uploadNftMetadataError?.message ??
-      (mintNft.error instanceof Error ? mintNft.error.message : null)
-    );
-  }, [
-    localError,
-    uploadNftImageError,
-    uploadNftMetadataError,
-    mintNft.error,
-  ]);
-
-  useEffect(() => {
-    if (!account.address || form.getValues("receiver")) {
-      return;
-    }
-
-    form.setValue("receiver", account.address, {
-      shouldDirty: false,
-      shouldTouch: false,
-      shouldValidate: true,
-    });
-  }, [account.address, form]);
-
-  async function onSubmit(values: NftMintFormInput) {
-    setLocalError(null);
-    setMintResult(null);
-
-    try {
-      if (values.customTokenURI?.trim()) {
-        const result = await mintNft.mutateAsync({
-          collectionAddress,
-          receiver: account.address ?? values.receiver,
-          mintPrice,
-          customTokenURI: values.customTokenURI,
-        });
-        setMintResult(result);
-        return;
-      }
-
-      if (!imageFile) {
-        setLocalError("Select an NFT image before uploading metadata.");
-        return;
-      }
-
-      const image = await uploadNftImage(imageFile);
-      const metadata = buildNftMetadata({
-        name: values.name ?? "",
-        description: values.description ?? "",
-        image: image.imageURI,
-        externalUrl: values.externalUrl,
-        attributes: parseAttributes(values.attributesText),
-      });
-
-      setMetadataPreview(metadata);
-
-      const uploadedMetadata = await uploadNftMetadata(metadata);
-      const result = await mintNft.mutateAsync({
-        collectionAddress,
-        receiver: account.address ?? values.receiver,
-        mintPrice,
-        customTokenURI: uploadedMetadata.metadataURI,
-      });
-
-      setMintResult({
-        ...result,
-        imageURI: image.imageURI,
-        metadataURI: uploadedMetadata.metadataURI,
-        metadata,
-      });
-    } catch (error) {
-      setLocalError(error instanceof Error ? error.message : "NFT mint failed.");
-    }
-  }
+    buttonLabel,
+    combinedError,
+    form,
+    handleImageFileChange,
+    handleSubmit,
+    isSubmitDisabled,
+    mintResult,
+    previewImageURI,
+    previewMetadata,
+    previewMetadataURI,
+  } = useNftMintPanel({ collectionAddress, mintPrice });
 
   return (
     <section className="grid gap-4">
@@ -189,7 +39,7 @@ export function NftMintPanel({
           </p>
         </div>
 
-        <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
+        <form onSubmit={handleSubmit} className="grid gap-4">
           <div>
             <label className="text-sm font-medium text-gray-200">
               Receiver
@@ -247,7 +97,7 @@ export function NftMintPanel({
               type="file"
               accept="image/*"
               onChange={(event) => {
-                setImageFile(event.target.files?.[0] ?? null);
+                handleImageFileChange(event.target.files?.[0] ?? null);
               }}
               className="mt-1 block w-full rounded-xl border border-white/10 bg-gray-950 px-3 py-2 text-sm text-gray-300 file:mr-3 file:rounded-lg file:border-0 file:bg-blue-600 file:px-3 file:py-2 file:text-sm file:text-white"
             />
@@ -304,23 +154,10 @@ export function NftMintPanel({
 
           <button
             type="submit"
-            disabled={
-              !account.isConnected ||
-              !form.formState.isValid ||
-              isBusy ||
-              (!advancedTokenURI && !imageFile)
-            }
+            disabled={isSubmitDisabled}
             className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {!account.isConnected
-              ? "Connect Wallet"
-              : isUploadingNftImage
-                ? "Uploading image..."
-                : isUploadingNftMetadata
-                  ? "Uploading metadata..."
-                  : mintNft.isPending
-                    ? "Minting..."
-                    : "Mint NFT"}
+            {buttonLabel}
           </button>
         </form>
 
@@ -334,11 +171,9 @@ export function NftMintPanel({
       </div>
 
       <NftMetadataPreview
-        metadata={uploadedNftMetadata?.metadata ?? metadataPreview}
-        imageURI={uploadedNftImage?.imageURI ?? mintResult?.imageURI ?? null}
-        metadataURI={
-          uploadedNftMetadata?.metadataURI ?? mintResult?.metadataURI ?? null
-        }
+        metadata={previewMetadata}
+        imageURI={previewImageURI}
+        metadataURI={previewMetadataURI}
       />
     </section>
   );
