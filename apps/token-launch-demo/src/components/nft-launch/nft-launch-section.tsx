@@ -5,6 +5,7 @@ import { useState } from "react";
 import { nftCollectionAddress } from "@/lib/contracts/nft-contracts";
 import type { CreateNftCollectionResult } from "@/lib/token-launch/types";
 import { NftCollectionCard } from "./nft-collection-card";
+import { NftEventHistory } from "./nft-event-history";
 import { NftCollectionForm } from "./nft-collection-form";
 import { NftMintPanel } from "./nft-mint-panel";
 
@@ -28,6 +29,8 @@ export function NftLaunchSection() {
           mintPrice={activeMintPrice}
         />
       </div>
+
+      <NftEventHistory selectedCollectionAddress={activeCollectionAddress} />
     </section>
   );
 }
