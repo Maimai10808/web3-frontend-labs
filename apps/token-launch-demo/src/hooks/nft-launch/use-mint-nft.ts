@@ -52,16 +52,18 @@ export function useMintNft() {
         }
       }
 
-      let tokenURI: string | undefined;
-
-      if (tokenId !== undefined) {
-        tokenURI = await publicClient.readContract({
-          address: nftCollectionContract.address,
-          abi: nftCollectionContract.abi,
-          functionName: "tokenURI",
-          args: [tokenId],
-        });
+      if (tokenId === undefined) {
+        throw new Error(
+          "CollectionMinted event not found in transaction receipt.",
+        );
       }
+
+      const tokenURI = await publicClient.readContract({
+        address: nftCollectionContract.address,
+        abi: nftCollectionContract.abi,
+        functionName: "tokenURI",
+        args: [tokenId],
+      });
 
       return {
         txHash,
@@ -72,9 +74,7 @@ export function useMintNft() {
     },
 
     onSuccess() {
-      void queryClient.invalidateQueries({
-        queryKey: ["nft-launch", "collection-info"],
-      });
+      void queryClient.invalidateQueries();
     },
   });
 }

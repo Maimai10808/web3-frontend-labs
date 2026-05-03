@@ -11,7 +11,7 @@ import {
   type NftMintFormValues,
 } from "@/lib/nft-launch/schema";
 import { useMintNft } from "@/hooks/nft-launch/use-mint-nft";
-import { NftTokenResultCard } from "./nft-token-result-card";
+import { NftMintResultCard } from "./nft-mint-result-card";
 
 export function NftMintPanel() {
   const account = useAccount();
@@ -104,7 +104,7 @@ export function NftMintPanel() {
         </div>
       ) : null}
 
-      <NftTokenResultCard result={mintNft.data ?? null} />
+      <NftMintResultCard result={mintNft.data ?? null} />
     </section>
   );
 }
