@@ -25,6 +25,42 @@ type LaunchRecord = {
   createdAt: bigint;
 };
 
+type LaunchRecordTuple = readonly [
+  Address,
+  Address,
+  string,
+  string,
+  string,
+  bigint,
+  bigint,
+];
+
+function normalizeLaunchRecord(record: unknown): LaunchRecord {
+  if (Array.isArray(record)) {
+    const [
+      token,
+      creator,
+      name,
+      symbol,
+      metadataURI,
+      maxSupply,
+      createdAt,
+    ] = record as unknown as LaunchRecordTuple;
+
+    return {
+      token,
+      creator,
+      name,
+      symbol,
+      metadataURI,
+      maxSupply,
+      createdAt,
+    };
+  }
+
+  return record as LaunchRecord;
+}
+
 export function useTokenInfo({
   tokenAddress,
   decimals = 18,
@@ -45,12 +81,12 @@ export function useTokenInfo({
 
       const normalizedTokenAddress = tokenAddress as Address;
 
-      const launchRecord = (await publicClient.readContract({
+      const launchRecord = normalizeLaunchRecord(await publicClient.readContract({
         abi: tokenFactoryAbi,
         address: tokenFactoryAddress,
         functionName: "launchRecordByToken",
         args: [normalizedTokenAddress],
-      })) as unknown as LaunchRecord;
+      }));
 
       const [name, symbol, totalSupply, owner, metadataURI] = await Promise.all(
         [
