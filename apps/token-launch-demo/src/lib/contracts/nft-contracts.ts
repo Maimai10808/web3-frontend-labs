@@ -42,6 +42,8 @@ export const nftCustomTokenURIUpdatedEventName = "CustomTokenURIUpdated";
 export const nftTransferEventName = "Transfer";
 
 export function getNftCollectionExplorerTxUrl(txHash: string): string | null {
+  void txHash;
+
   if (nftCollectionChainId === 31337) {
     return null;
   }
@@ -52,6 +54,8 @@ export function getNftCollectionExplorerTxUrl(txHash: string): string | null {
 export function getNftCollectionExplorerAddressUrl(
   address: Address,
 ): string | null {
+  void address;
+
   if (nftCollectionChainId === 31337) {
     return null;
   }

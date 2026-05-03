@@ -1,6 +1,10 @@
 import { TokenLaunchForm } from "@/components/token-launch/token-launch-form";
 import { WalletStatusPanel } from "@/components/token-launch/wallet-status-panel";
 
+import { NftCollectionCard } from "@/components/nft-launch/nft-collection-card";
+
+import { NftMintPanel } from "@/components/nft-launch/nft-mint-panel";
+
 export default function Page() {
   return (
     <main className="min-h-screen bg-gray-950 px-6 py-10">
@@ -18,6 +22,12 @@ export default function Page() {
 
         <WalletStatusPanel />
         <TokenLaunchForm />
+
+        <section className="mt-6 grid gap-6 lg:grid-cols-[1fr_0.9fr]">
+          <NftCollectionCard />
+
+          <NftMintPanel />
+        </section>
       </div>
     </main>
   );
