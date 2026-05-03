@@ -7,13 +7,13 @@ export function buildMintArgs(input: NftMintInput) {
 
   if (customTokenURI) {
     return {
-      functionName: "mintToWithURI",
+      functionName: "adminMintToWithURI",
       args: [receiver, customTokenURI] as const,
     } as const;
   }
 
   return {
-    functionName: "mintTo",
+    functionName: "adminMintTo",
     args: [receiver] as const,
   } as const;
 }
