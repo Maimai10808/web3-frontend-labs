@@ -1,0 +1,14 @@
+{
+  "deploymentId": "local-31337-1777799861243",
+  "chainId": 31337,
+  "networkName": "local",
+  "deployScript": "DeployNftCollection.s.sol",
+  "exportedAt": "2026-05-03T09:17:41.243Z",
+  "contracts": {
+    "launchERC721Collection": {
+      "contractName": "LaunchERC721Collection",
+      "address": "0x0b306bf915c4d645ff596e518faf3f9669b97016",
+      "transactionHash": "0x6666c34ba3b7f1425f30be1919a105868879c5a99b4c4dfcc54502cbbdd44149"
+    }
+  }
+}

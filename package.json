@@ -21,7 +21,10 @@
     "contracts:deploy:token-launch:raw": "cd contracts/foundry && source .env && forge script script/DeployTokenLaunch.s.sol --rpc-url \"$LOCAL_RPC_URL\" --private-key \"$PRIVATE_KEY\" --broadcast",
     "contracts:sync:token-launch": "node scripts/sync-token-launch-contracts.mjs",
     "deploy:token-launch": "npm run contracts:build && npm run contracts:deploy:token-launch:raw && npm run contracts:sync:token-launch",
-    "chain:local": "cd contracts/foundry && anvil --host 127.0.0.1 --port 8545 --chain-id 31337"
+    "chain:local": "cd contracts/foundry && anvil --host 127.0.0.1 --port 8545 --chain-id 31337",
+    "contracts:deploy:nft-collection:raw": "cd contracts/foundry && source .env && forge script script/DeployNftCollection.s.sol --rpc-url \"$LOCAL_RPC_URL\" --private-key \"$PRIVATE_KEY\" --broadcast",
+    "contracts:sync:nft-collection": "node scripts/sync-nft-collection.mjs",
+    "deploy:nft-collection": "npm run contracts:build && npm run contracts:deploy:nft-collection:raw && npm run contracts:sync:nft-collection"
   },
   "keywords": [
     "web3",
