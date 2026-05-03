@@ -1,5 +1,12 @@
 export * from "./contracts";
-export * from "./nft-collection";
+
+export {
+  launchERC721CollectionAbi,
+  launchERC721CollectionAddress,
+  launchERC721CollectionDeployment,
+  nftCollectionDeploymentMeta,
+} from "./nft-collection";
+
 export {
   launchERC721FactoryAbi,
   launchERC721FactoryAddress,
