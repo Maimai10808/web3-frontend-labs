@@ -710,5 +710,12 @@ export const deploymentMeta = {
   "chainId": 31337,
   "networkName": "local",
   "deployScript": "DeployTokenLaunch.s.sol",
-  "exportedAt": "2026-05-03T08:26:28.771Z"
+  "exportedAt": "2026-05-03T08:26:28.771Z",
+  "contracts": {
+    "tokenFactory": {
+      "contractName": "TokenFactory",
+      "address": "0x0dcd1bf9a1b36ce34237eeafef220932846bcd82",
+      "transactionHash": "0x657b35b3a87c263fce37ec886750eb0fbbba3db6d9e01277078d7fb39bda868b"
+    }
+  }
 } as const;

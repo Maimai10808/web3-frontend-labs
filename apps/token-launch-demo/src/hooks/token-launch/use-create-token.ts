@@ -1,11 +1,9 @@
 "use client";
 
 import { useMutation } from "@tanstack/react-query";
+import { tokenFactoryAbi } from "@web3-frontend-labs/contracts/token-launch-demo";
 import { decodeEventLog, type Hex } from "viem";
-import {
-  usePublicClient,
-  useWriteContract,
-} from "wagmi";
+import { usePublicClient, useWriteContract } from "wagmi";
 import { buildCreateTokenArgs } from "@/lib/token-launch/build-create-token-args";
 import type {
   CreateTokenResult,
@@ -15,9 +13,6 @@ import {
   tokenFactoryAddress,
   tokenLaunchedEventName,
 } from "@/lib/contracts/token-launch";
-
-// 这里后面优先替换成从 @web3-frontend-labs/contracts 导入
-import { TokenFactoryAbi } from "@/lib/contracts/token-factory-abi";
 
 type UseCreateTokenParams = {
   form: Pick<
@@ -48,7 +43,7 @@ export function useCreateToken() {
       });
 
       const txHash = await writeContractAsync({
-        abi: TokenFactoryAbi,
+        abi: tokenFactoryAbi,
         address: tokenFactoryAddress,
         functionName: "createToken",
         args: [
@@ -70,7 +65,7 @@ export function useCreateToken() {
       for (const log of receipt.logs) {
         try {
           const decoded = decodeEventLog({
-            abi: TokenFactoryAbi,
+            abi: tokenFactoryAbi,
             data: log.data,
             topics: log.topics,
           });

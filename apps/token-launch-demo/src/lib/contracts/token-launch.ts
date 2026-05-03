@@ -1,34 +1,13 @@
 import type { Address } from "viem";
+import {
+  deploymentMeta,
+  tokenFactoryAddress as deployedTokenFactoryAddress,
+} from "@web3-frontend-labs/contracts/token-launch-demo";
 
-const publicEnv = {
-  NEXT_PUBLIC_TOKEN_LAUNCH_CHAIN_ID:
-    process.env.NEXT_PUBLIC_TOKEN_LAUNCH_CHAIN_ID,
-  NEXT_PUBLIC_TOKEN_FACTORY_ADDRESS:
-    process.env.NEXT_PUBLIC_TOKEN_FACTORY_ADDRESS,
-  NEXT_PUBLIC_TOKEN_FACTORY_DEPLOY_TX_HASH:
-    process.env.NEXT_PUBLIC_TOKEN_FACTORY_DEPLOY_TX_HASH,
-};
-
-function getRequiredPublicEnv(name: keyof typeof publicEnv): string {
-  const value = publicEnv[name];
-
-  if (!value) {
-    throw new Error(`Missing required public env: ${name}`);
-  }
-
-  return value;
-}
-
-export const tokenLaunchChainId = Number(
-  getRequiredPublicEnv("NEXT_PUBLIC_TOKEN_LAUNCH_CHAIN_ID"),
-);
-
-export const tokenFactoryAddress = getRequiredPublicEnv(
-  "NEXT_PUBLIC_TOKEN_FACTORY_ADDRESS",
-) as Address;
-
+export const tokenLaunchChainId = deploymentMeta.chainId;
+export const tokenFactoryAddress = deployedTokenFactoryAddress as Address;
 export const tokenFactoryDeployTxHash =
-  publicEnv.NEXT_PUBLIC_TOKEN_FACTORY_DEPLOY_TX_HASH ?? null;
+  deploymentMeta.contracts.tokenFactory.transactionHash;
 
 export const tokenLaunchedEventName = "TokenLaunched";
 
