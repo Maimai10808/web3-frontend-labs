@@ -1,7 +1,16 @@
 import type { Address } from "viem";
 
-function getRequiredPublicEnv(name: string): string {
-  const value = process.env[name];
+const publicEnv = {
+  NEXT_PUBLIC_TOKEN_LAUNCH_CHAIN_ID:
+    process.env.NEXT_PUBLIC_TOKEN_LAUNCH_CHAIN_ID,
+  NEXT_PUBLIC_TOKEN_FACTORY_ADDRESS:
+    process.env.NEXT_PUBLIC_TOKEN_FACTORY_ADDRESS,
+  NEXT_PUBLIC_TOKEN_FACTORY_DEPLOY_TX_HASH:
+    process.env.NEXT_PUBLIC_TOKEN_FACTORY_DEPLOY_TX_HASH,
+};
+
+function getRequiredPublicEnv(name: keyof typeof publicEnv): string {
+  const value = publicEnv[name];
 
   if (!value) {
     throw new Error(`Missing required public env: ${name}`);
@@ -19,7 +28,7 @@ export const tokenFactoryAddress = getRequiredPublicEnv(
 ) as Address;
 
 export const tokenFactoryDeployTxHash =
-  process.env.NEXT_PUBLIC_TOKEN_FACTORY_DEPLOY_TX_HASH ?? null;
+  publicEnv.NEXT_PUBLIC_TOKEN_FACTORY_DEPLOY_TX_HASH ?? null;
 
 export const tokenLaunchedEventName = "TokenLaunched";
 

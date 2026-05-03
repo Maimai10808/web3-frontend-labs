@@ -1,4 +1,5 @@
 import { TokenLaunchForm } from "@/components/token-launch/token-launch-form";
+import { WalletStatusPanel } from "@/components/token-launch/wallet-status-panel";
 
 export default function Page() {
   return (
@@ -15,6 +16,7 @@ export default function Page() {
           </p>
         </div>
 
+        <WalletStatusPanel />
         <TokenLaunchForm />
       </div>
     </main>

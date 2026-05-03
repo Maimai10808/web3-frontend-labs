@@ -4,7 +4,6 @@ import { useMutation } from "@tanstack/react-query";
 import { decodeEventLog, type Hex } from "viem";
 import {
   usePublicClient,
-  useWaitForTransactionReceipt,
   useWriteContract,
 } from "wagmi";
 import { buildCreateTokenArgs } from "@/lib/token-launch/build-create-token-args";

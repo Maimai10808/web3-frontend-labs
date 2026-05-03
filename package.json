@@ -17,7 +17,11 @@
     "contracts:build": "forge build --root contracts/foundry",
     "contracts:deploy:local:raw": "cd contracts/foundry && source .env && forge script script/DeployLocal.s.sol --rpc-url \"$LOCAL_RPC_URL\" --private-key \"$PRIVATE_KEY\" --broadcast",
     "contracts:sync": "node scripts/sync-contracts.mjs",
-    "deploy:local": "npm run contracts:build && npm run contracts:deploy:local:raw && npm run contracts:sync"
+    "deploy:local": "npm run contracts:build && npm run contracts:deploy:local:raw && npm run contracts:sync",
+    "contracts:deploy:token-launch:raw": "cd contracts/foundry && source .env && forge script script/DeployTokenLaunch.s.sol --rpc-url \"$LOCAL_RPC_URL\" --private-key \"$PRIVATE_KEY\" --broadcast",
+    "contracts:sync:token-launch": "node scripts/sync-token-launch-contracts.mjs",
+    "deploy:token-launch": "npm run contracts:build && npm run contracts:deploy:token-launch:raw && npm run contracts:sync:token-launch",
+    "chain:local": "cd contracts/foundry && anvil --host 127.0.0.1 --port 8545 --chain-id 31337"
   },
   "keywords": [
     "web3",
