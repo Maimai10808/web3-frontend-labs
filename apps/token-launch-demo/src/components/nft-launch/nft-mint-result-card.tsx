@@ -69,6 +69,16 @@ export function NftMintResultCard({ result }: NftMintResultCardProps) {
             breakAll
           />
           <ResultRow
+            label="Image URI"
+            value={result.imageURI ?? "-"}
+            breakAll
+          />
+          <ResultRow
+            label="Metadata URI"
+            value={result.metadataURI ?? result.tokenURI ?? "-"}
+            breakAll
+          />
+          <ResultRow
             label="Receiver"
             value={truncateValue(result.receiver)}
             title={result.receiver}

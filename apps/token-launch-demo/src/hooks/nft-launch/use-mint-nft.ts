@@ -7,8 +7,7 @@ import {
   nftCollectionMintedEventName,
 } from "@/lib/contracts/nft-contracts";
 import { buildMintArgs } from "@/lib/nft-launch/build-mint-args";
-import type { NftMintFormInput } from "@/lib/nft-launch/schema";
-import type { NftMintResult } from "@/lib/nft-launch/types";
+import type { NftMintInput, NftMintResult } from "@/lib/nft-launch/types";
 
 export function useMintNft() {
   const publicClient = usePublicClient();
@@ -16,7 +15,7 @@ export function useMintNft() {
   const writeContract = useWriteContract();
 
   return useMutation({
-    async mutationFn(input: NftMintFormInput): Promise<NftMintResult> {
+    async mutationFn(input: NftMintInput): Promise<NftMintResult> {
       if (!publicClient) {
         throw new Error("Public client is not ready.");
       }

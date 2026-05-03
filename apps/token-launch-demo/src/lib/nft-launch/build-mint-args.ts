@@ -1,7 +1,7 @@
 import type { Address } from "viem";
-import type { NftMintFormInput } from "./schema";
+import type { NftMintInput } from "./types";
 
-export function buildMintArgs(input: NftMintFormInput) {
+export function buildMintArgs(input: NftMintInput) {
   const receiver = input.receiver as Address;
   const customTokenURI = input.customTokenURI?.trim();
 
