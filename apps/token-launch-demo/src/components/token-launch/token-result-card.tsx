@@ -18,6 +18,15 @@ export function TokenResultCard({ result }: TokenResultCardProps) {
           <ResultRow label="Transaction Hash" value={result.txHash} />
           <ResultRow label="Token Address" value={result.tokenAddress} />
           <ResultRow label="Metadata URL" value={result.metadataUrl} />
+          {result.tokenName ? (
+            <ResultRow label="Name" value={result.tokenName} />
+          ) : null}
+          {result.tokenSymbol ? (
+            <ResultRow label="Symbol" value={result.tokenSymbol} />
+          ) : null}
+          {result.maxSupply ? (
+            <ResultRow label="Max Supply" value={result.maxSupply} />
+          ) : null}
         </div>
       ) : (
         <div className="rounded-xl border border-dashed border-white/10 bg-gray-950 p-4 text-sm text-gray-400">

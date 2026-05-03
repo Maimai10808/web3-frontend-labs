@@ -40,11 +40,7 @@ export function NftCollectionCard({
         <div className="grid gap-3 md:grid-cols-2">
           <InfoItem label="Name" value={collection.name} />
           <InfoItem label="Symbol" value={collection.symbol} />
-          <InfoItem
-            label="Address"
-            value={activeCollectionAddress}
-            breakAll
-          />
+          <InfoItem label="Address" value={activeCollectionAddress} breakAll />
           <InfoItem
             label="Contract URI"
             value={collection.contractURI}

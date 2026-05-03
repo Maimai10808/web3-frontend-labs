@@ -46,6 +46,9 @@ export type CreateTokenResult = {
   txHash: string;
   tokenAddress: string;
   metadataUrl: string;
+  tokenName?: string;
+  tokenSymbol?: string;
+  maxSupply?: string;
 };
 
 export type TokenInfo = {
@@ -78,6 +81,24 @@ export type CreateNftCollectionResult = {
   mintPrice: bigint;
 };
 
+export type TokenLaunchStep =
+  | "idle"
+  | "logo_uploading"
+  | "metadata_building"
+  | "metadata_uploading"
+  | "wallet_confirming"
+  | "tx_pending"
+  | "tx_confirming"
+  | "success"
+  | "error";
+
+export type TokenLaunchProgressItem = {
+  key: TokenLaunchStep;
+  label: string;
+  description: string;
+  status: "idle" | "active" | "done" | "error";
+};
+
 export type TokenLaunchEvent =
   | {
       type: "logo_upload_started";
@@ -93,9 +114,27 @@ export type TokenLaunchEvent =
       message: string;
     }
   | {
+      type: "metadata_built";
+      message: string;
+    }
+  | {
       type: "metadata_upload_succeeded";
       message: string;
       metadataUrl: string;
+    }
+  | {
+      type: "wallet_confirmation_requested";
+      message: string;
+    }
+  | {
+      type: "transaction_submitted";
+      message: string;
+      txHash: string;
+    }
+  | {
+      type: "transaction_confirmed";
+      message: string;
+      txHash: string;
     }
   | {
       type: "token_create_started";

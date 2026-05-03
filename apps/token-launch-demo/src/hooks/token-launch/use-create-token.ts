@@ -7,6 +7,7 @@ import { usePublicClient, useWriteContract } from "wagmi";
 import { buildCreateTokenArgs } from "@/lib/token-launch/build-create-token-args";
 import type {
   CreateTokenResult,
+  TokenLaunchStep,
   ValidatedTokenLaunchFormValues,
 } from "@/lib/token-launch/types";
 import {
@@ -21,6 +22,8 @@ type UseCreateTokenParams = {
   >;
   metadataUrl: string;
   maxSupply: string;
+  onStepChange?: (step: TokenLaunchStep) => void;
+  onTransactionSubmitted?: (txHash: Hex) => void;
 };
 
 export function useCreateToken() {
@@ -31,6 +34,8 @@ export function useCreateToken() {
       form,
       metadataUrl,
       maxSupply,
+      onStepChange,
+      onTransactionSubmitted,
     }: UseCreateTokenParams): Promise<CreateTokenResult> => {
       if (!publicClient) {
         throw new Error("Public client is not ready.");
@@ -41,6 +46,8 @@ export function useCreateToken() {
         metadataUrl,
         maxSupply,
       });
+
+      onStepChange?.("wallet_confirming");
 
       const txHash = await writeContractAsync({
         abi: tokenFactoryAbi,
@@ -55,6 +62,10 @@ export function useCreateToken() {
           },
         ],
       });
+
+      onStepChange?.("tx_pending");
+      onTransactionSubmitted?.(txHash as Hex);
+      onStepChange?.("tx_confirming");
 
       const receipt = await publicClient.waitForTransactionReceipt({
         hash: txHash,
@@ -93,6 +104,9 @@ export function useCreateToken() {
         txHash: txHash as Hex,
         tokenAddress,
         metadataUrl,
+        tokenName: args.name,
+        tokenSymbol: args.symbol,
+        maxSupply,
       };
     },
   });
