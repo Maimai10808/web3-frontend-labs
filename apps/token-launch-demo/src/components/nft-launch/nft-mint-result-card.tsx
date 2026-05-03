@@ -25,6 +25,7 @@ function addressesMatch(a?: string | null, b?: string | null) {
 
 export function NftMintResultCard({ result }: NftMintResultCardProps) {
   const tokenInfo = useNftTokenInfo({
+    collectionAddress: result?.collectionAddress ?? null,
     tokenId: result?.tokenId ?? null,
     owner: result?.receiver ?? null,
     enabled:

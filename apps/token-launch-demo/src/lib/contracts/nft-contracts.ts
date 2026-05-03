@@ -10,6 +10,8 @@ import {
   nftCollectionFactoryDeploymentMeta,
 } from "@web3-frontend-labs/contracts/token-launch-demo";
 
+export { launchERC721CollectionAbi, launchERC721FactoryAbi };
+
 export const nftCollectionChainId = nftCollectionDeploymentMeta.chainId;
 
 export const nftCollectionAddress =

@@ -1,5 +1,10 @@
 import type { z } from "zod";
-import type { tokenLaunchFormSchema, tokenMetadataSchema } from "./schema";
+import type {
+  nftCollectionFormSchema,
+  tokenLaunchFormSchema,
+  tokenMetadataSchema,
+} from "./schema";
+import type { Address, Hash } from "viem";
 
 export type TokenLaunchFormValues = {
   tokenName: string;
@@ -53,6 +58,24 @@ export type TokenInfo = {
   maxSupply: string;
   metadataUrl: string;
   createdAt: number;
+};
+
+export type NftCollectionFormValues = z.input<typeof nftCollectionFormSchema>;
+
+export type ValidatedNftCollectionFormValues = z.output<
+  typeof nftCollectionFormSchema
+>;
+
+export type CreateNftCollectionResult = {
+  txHash: Hash;
+  collectionAddress: Address;
+  creator: Address;
+  name: string;
+  symbol: string;
+  contractURI: string;
+  baseTokenURI: string;
+  maxSupply: bigint;
+  mintPrice: bigint;
 };
 
 export type TokenLaunchEvent =

@@ -69,6 +69,32 @@ export const tokenMetadataSchema = z.object({
   createdOn: z.string().trim().min(1),
 });
 
+export const nftCollectionFormSchema = z.object({
+  name: z.string().trim().min(1, "Collection name is required."),
+  symbol: z.string().trim().min(1, "Collection symbol is required."),
+  contractURI: z.string().trim().min(1, "Contract URI is required."),
+  baseTokenURI: z.string().trim().min(1, "Base token URI is required."),
+  maxSupply: z
+    .string()
+    .trim()
+    .min(1, "Max supply is required.")
+    .regex(/^\d+$/, "Max supply must be a positive integer.")
+    .refine((value) => BigInt(value) > BigInt(0), {
+      message: "Max supply must be greater than 0.",
+    }),
+  mintPrice: z
+    .string()
+    .trim()
+    .min(1, "Mint price is required.")
+    .refine((value) => {
+      try {
+        return Number(value) >= 0;
+      } catch {
+        return false;
+      }
+    }, "Mint price must be a non-negative ETH value."),
+});
+
 export function validateTokenLaunchForm(
   values: z.input<typeof tokenLaunchFormSchema>,
 ) {

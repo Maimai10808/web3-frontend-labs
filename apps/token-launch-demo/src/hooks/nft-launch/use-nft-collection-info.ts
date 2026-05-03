@@ -1,9 +1,19 @@
 import { useReadContracts } from "wagmi";
+import type { Address } from "viem";
 
-import { nftCollectionContract } from "@/lib/contracts/nft-contracts";
+import {
+  launchERC721CollectionAbi,
+  nftCollectionAddress,
+} from "@/lib/contracts/nft-contracts";
 import type { NftCollectionInfo } from "@/lib/nft-launch/types";
 
-export function useNftCollectionInfo() {
+export function useNftCollectionInfo(collectionAddress?: Address | null) {
+  const activeCollectionAddress = collectionAddress ?? nftCollectionAddress;
+  const nftCollectionContract = {
+    address: activeCollectionAddress,
+    abi: launchERC721CollectionAbi,
+  } as const;
+
   return useReadContracts({
     allowFailure: false,
     contracts: [
@@ -39,6 +49,10 @@ export function useNftCollectionInfo() {
         ...nftCollectionContract,
         functionName: "totalMinted",
       },
+      {
+        ...nftCollectionContract,
+        functionName: "mintPrice",
+      },
     ],
     query: {
       select(data): NftCollectionInfo {
@@ -51,6 +65,7 @@ export function useNftCollectionInfo() {
           nextTokenId: data[5] as bigint,
           totalSupply: data[6] as bigint,
           totalMinted: data[7] as bigint,
+          mintPrice: data[8] as bigint,
         };
       },
     },

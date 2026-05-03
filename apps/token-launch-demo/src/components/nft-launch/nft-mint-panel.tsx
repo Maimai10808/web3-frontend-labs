@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useMemo, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { useAccount } from "wagmi";
+import type { Address } from "viem";
 
 import { useMintNft } from "@/hooks/nft-launch/use-mint-nft";
 import { useUploadNftImage } from "@/hooks/nft-launch/use-upload-nft-image";
@@ -21,6 +22,11 @@ import type {
 } from "@/lib/nft-launch/types";
 import { NftMetadataPreview } from "./nft-metadata-preview";
 import { NftMintResultCard } from "./nft-mint-result-card";
+
+type NftMintPanelProps = {
+  collectionAddress: Address;
+  mintPrice: bigint;
+};
 
 function parseAttributes(attributesText?: string): NftAttribute[] {
   if (!attributesText?.trim()) {
@@ -49,7 +55,10 @@ function parseAttributes(attributesText?: string): NftAttribute[] {
     });
 }
 
-export function NftMintPanel() {
+export function NftMintPanel({
+  collectionAddress,
+  mintPrice,
+}: NftMintPanelProps) {
   const account = useAccount();
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [metadataPreview, setMetadataPreview] = useState<NftMetadata | null>(
@@ -125,7 +134,9 @@ export function NftMintPanel() {
     try {
       if (values.customTokenURI?.trim()) {
         const result = await mintNft.mutateAsync({
-          receiver: values.receiver,
+          collectionAddress,
+          receiver: account.address ?? values.receiver,
+          mintPrice,
           customTokenURI: values.customTokenURI,
         });
         setMintResult(result);
@@ -150,7 +161,9 @@ export function NftMintPanel() {
 
       const uploadedMetadata = await uploadNftMetadata(metadata);
       const result = await mintNft.mutateAsync({
-        receiver: values.receiver,
+        collectionAddress,
+        receiver: account.address ?? values.receiver,
+        mintPrice,
         customTokenURI: uploadedMetadata.metadataURI,
       });
 

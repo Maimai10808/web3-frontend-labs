@@ -1,10 +1,19 @@
 "use client";
 
+import type { Address } from "viem";
+import { formatEther } from "viem";
 import { nftCollectionAddress } from "@/lib/contracts/nft-contracts";
 import { useNftCollectionInfo } from "@/hooks/nft-launch/use-nft-collection-info";
 
-export function NftCollectionCard() {
-  const collectionQuery = useNftCollectionInfo();
+type NftCollectionCardProps = {
+  collectionAddress?: Address | null;
+};
+
+export function NftCollectionCard({
+  collectionAddress,
+}: NftCollectionCardProps) {
+  const activeCollectionAddress = collectionAddress ?? nftCollectionAddress;
+  const collectionQuery = useNftCollectionInfo(activeCollectionAddress);
   const collection = collectionQuery.data;
 
   return (
@@ -33,7 +42,7 @@ export function NftCollectionCard() {
           <InfoItem label="Symbol" value={collection.symbol} />
           <InfoItem
             label="Address"
-            value={nftCollectionAddress}
+            value={activeCollectionAddress}
             breakAll
           />
           <InfoItem
@@ -57,6 +66,10 @@ export function NftCollectionCard() {
           <InfoItem
             label="Total Minted"
             value={collection.totalMinted.toString()}
+          />
+          <InfoItem
+            label="Mint Price"
+            value={`${formatEther(collection.mintPrice)} ETH`}
           />
           <InfoItem
             label="Next Token ID"

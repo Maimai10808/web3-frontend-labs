@@ -4,9 +4,13 @@ import { useMemo } from "react";
 import { zeroAddress, type Address } from "viem";
 import { useReadContract } from "wagmi";
 
-import { nftCollectionContract } from "@/lib/contracts/nft-contracts";
+import {
+  launchERC721CollectionAbi,
+  nftCollectionAddress,
+} from "@/lib/contracts/nft-contracts";
 
 type UseNftTokenInfoParams = {
+  collectionAddress?: Address | null;
   tokenId?: bigint | number | string | null;
   owner?: Address | null;
   enabled?: boolean;
@@ -25,16 +29,19 @@ function normalizeTokenId(tokenId: UseNftTokenInfoParams["tokenId"]) {
 }
 
 export function useNftTokenInfo({
+  collectionAddress,
   tokenId,
   owner,
   enabled = true,
 }: UseNftTokenInfoParams) {
+  const activeCollectionAddress = collectionAddress ?? nftCollectionAddress;
   const normalizedTokenId = useMemo(() => normalizeTokenId(tokenId), [tokenId]);
   const canReadToken = enabled && normalizedTokenId !== null;
   const canReadBalance = canReadToken && Boolean(owner);
 
   const ownerOfQuery = useReadContract({
-    ...nftCollectionContract,
+    address: activeCollectionAddress,
+    abi: launchERC721CollectionAbi,
     functionName: "ownerOf",
     args: [normalizedTokenId ?? BigInt(0)],
     query: {
@@ -43,7 +50,8 @@ export function useNftTokenInfo({
   });
 
   const tokenURIQuery = useReadContract({
-    ...nftCollectionContract,
+    address: activeCollectionAddress,
+    abi: launchERC721CollectionAbi,
     functionName: "tokenURI",
     args: [normalizedTokenId ?? BigInt(0)],
     query: {
@@ -52,7 +60,8 @@ export function useNftTokenInfo({
   });
 
   const balanceOfQuery = useReadContract({
-    ...nftCollectionContract,
+    address: activeCollectionAddress,
+    abi: launchERC721CollectionAbi,
     functionName: "balanceOf",
     args: [owner ?? zeroAddress],
     query: {

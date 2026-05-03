@@ -3,7 +3,7 @@ import { decodeEventLog } from "viem";
 import { usePublicClient, useWriteContract } from "wagmi";
 
 import {
-  nftCollectionContract,
+  launchERC721CollectionAbi,
   nftCollectionMintedEventName,
 } from "@/lib/contracts/nft-contracts";
 import { buildMintArgs } from "@/lib/nft-launch/build-mint-args";
@@ -23,10 +23,11 @@ export function useMintNft() {
       const mintCall = buildMintArgs(input);
 
       const txHash = await writeContract.writeContractAsync({
-        address: nftCollectionContract.address,
-        abi: nftCollectionContract.abi,
+        address: input.collectionAddress,
+        abi: launchERC721CollectionAbi,
         functionName: mintCall.functionName,
         args: mintCall.args,
+        value: mintCall.value,
       });
 
       const receipt = await publicClient.waitForTransactionReceipt({
@@ -38,7 +39,7 @@ export function useMintNft() {
       for (const log of receipt.logs) {
         try {
           const decoded = decodeEventLog({
-            abi: nftCollectionContract.abi,
+            abi: launchERC721CollectionAbi,
             data: log.data,
             topics: log.topics,
           });
@@ -58,14 +59,15 @@ export function useMintNft() {
       }
 
       const tokenURI = await publicClient.readContract({
-        address: nftCollectionContract.address,
-        abi: nftCollectionContract.abi,
+        address: input.collectionAddress,
+        abi: launchERC721CollectionAbi,
         functionName: "tokenURI",
         args: [tokenId],
       });
 
       return {
         txHash,
+        collectionAddress: input.collectionAddress,
         tokenId,
         receiver: input.receiver as NftMintResult["receiver"],
         tokenURI,

@@ -33,12 +33,15 @@ export type UploadedNftMetadataResult = {
 };
 
 export type NftMintInput = {
+  collectionAddress: Address;
   receiver: Address;
+  mintPrice: bigint;
   customTokenURI?: string;
 };
 
 export type NftMintResult = {
   txHash: `0x${string}`;
+  collectionAddress: Address;
   tokenId?: bigint;
   receiver: Address;
   tokenURI?: string;
@@ -56,4 +59,5 @@ export type NftCollectionInfo = {
   nextTokenId: bigint;
   totalSupply: bigint;
   totalMinted: bigint;
+  mintPrice: bigint;
 };
