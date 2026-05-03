@@ -1,25 +1,23 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import {ERC721Enumerable} from "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 
 contract LaunchERC721Collection is ERC721Enumerable, AccessControl {
     using Strings for uint256;
 
-    string public constant ROLE_MINTER_STR = "ROLE_MINTER";
-    bytes32 public constant ROLE_MINTER = keccak256(bytes(ROLE_MINTER_STR));
-
-    string public constant ROLE_MINTER_ADMIN_STR = "ROLE_MINTER_ADMIN";
-    bytes32 public constant ROLE_MINTER_ADMIN =
-        keccak256(bytes(ROLE_MINTER_ADMIN_STR));
+    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
+    bytes32 public constant COLLECTION_ADMIN_ROLE =
+        keccak256("COLLECTION_ADMIN_ROLE");
 
     string public contractURI;
     string private _baseTokenURI;
 
     uint256 public immutable maxSupply;
+    uint256 public mintPrice;
     uint256 public nextTokenId;
 
     mapping(uint256 => string) private _customTokenURIs;
@@ -27,24 +25,25 @@ contract LaunchERC721Collection is ERC721Enumerable, AccessControl {
     event CollectionMinted(
         address indexed operator,
         address indexed to,
-        uint256 indexed tokenId
+        uint256 indexed tokenId,
+        uint256 paid
     );
 
     event CollectionBurned(uint256 indexed tokenId);
-
     event ContractURIUpdated(string nextContractURI);
-
     event BaseTokenURIUpdated(string nextBaseTokenURI);
-
     event CustomTokenURIUpdated(uint256 indexed tokenId, string nextTokenURI);
+    event MintPriceUpdated(uint256 nextMintPrice);
+    event Withdrawn(address indexed receiver, uint256 amount);
 
     error ContractURIRequired();
     error BaseTokenURIRequired();
     error MaxSupplyRequired();
     error MaxSupplyReached();
-    error MinterRoleRequired();
+    error MintPriceNotPaid();
     error NonexistentToken();
     error OwnerRequired();
+    error WithdrawFailed();
 
     constructor(
         string memory name_,
@@ -52,6 +51,7 @@ contract LaunchERC721Collection is ERC721Enumerable, AccessControl {
         string memory contractURI_,
         string memory baseTokenURI_,
         uint256 maxSupply_,
+        uint256 mintPrice_,
         address owner_
     ) ERC721(name_, symbol_) {
         if (bytes(contractURI_).length == 0) revert ContractURIRequired();
@@ -62,45 +62,57 @@ contract LaunchERC721Collection is ERC721Enumerable, AccessControl {
         contractURI = contractURI_;
         _baseTokenURI = baseTokenURI_;
         maxSupply = maxSupply_;
+        mintPrice = mintPrice_;
         nextTokenId = 1;
 
-        _setRoleAdmin(ROLE_MINTER, ROLE_MINTER_ADMIN);
-
         _grantRole(DEFAULT_ADMIN_ROLE, owner_);
-        _grantRole(ROLE_MINTER_ADMIN, owner_);
-        _grantRole(ROLE_MINTER, owner_);
+        _grantRole(COLLECTION_ADMIN_ROLE, owner_);
+        _grantRole(MINTER_ROLE, owner_);
     }
 
-    function mintTo(address to) external returns (uint256 tokenId) {
-        if (!hasRole(ROLE_MINTER, msg.sender)) revert MinterRoleRequired();
-        if (nextTokenId > maxSupply) revert MaxSupplyReached();
+    function mint() external payable returns (uint256 tokenId) {
+        if (msg.value < mintPrice) revert MintPriceNotPaid();
 
-        tokenId = nextTokenId;
-        nextTokenId += 1;
+        tokenId = _mintNext(msg.sender);
 
-        _safeMint(to, tokenId);
-
-        emit CollectionMinted(msg.sender, to, tokenId);
+        emit CollectionMinted(msg.sender, msg.sender, tokenId, msg.value);
     }
 
-    function mintToWithURI(
-        address to,
+    function mintWithURI(
         string calldata nextTokenURI
-    ) external returns (uint256 tokenId) {
-        if (!hasRole(ROLE_MINTER, msg.sender)) revert MinterRoleRequired();
-        if (nextTokenId > maxSupply) revert MaxSupplyReached();
+    ) external payable returns (uint256 tokenId) {
+        if (msg.value < mintPrice) revert MintPriceNotPaid();
 
-        tokenId = nextTokenId;
-        nextTokenId += 1;
-
-        _safeMint(to, tokenId);
+        tokenId = _mintNext(msg.sender);
 
         if (bytes(nextTokenURI).length > 0) {
             _customTokenURIs[tokenId] = nextTokenURI;
             emit CustomTokenURIUpdated(tokenId, nextTokenURI);
         }
 
-        emit CollectionMinted(msg.sender, to, tokenId);
+        emit CollectionMinted(msg.sender, msg.sender, tokenId, msg.value);
+    }
+
+    function adminMintTo(
+        address to
+    ) external onlyRole(MINTER_ROLE) returns (uint256 tokenId) {
+        tokenId = _mintNext(to);
+
+        emit CollectionMinted(msg.sender, to, tokenId, 0);
+    }
+
+    function adminMintToWithURI(
+        address to,
+        string calldata nextTokenURI
+    ) external onlyRole(MINTER_ROLE) returns (uint256 tokenId) {
+        tokenId = _mintNext(to);
+
+        if (bytes(nextTokenURI).length > 0) {
+            _customTokenURIs[tokenId] = nextTokenURI;
+            emit CustomTokenURIUpdated(tokenId, nextTokenURI);
+        }
+
+        emit CollectionMinted(msg.sender, to, tokenId, 0);
     }
 
     function burn(uint256 tokenId) external {
@@ -125,7 +137,7 @@ contract LaunchERC721Collection is ERC721Enumerable, AccessControl {
 
     function setContractURI(
         string calldata nextContractURI
-    ) external onlyRole(ROLE_MINTER_ADMIN) {
+    ) external onlyRole(COLLECTION_ADMIN_ROLE) {
         if (bytes(nextContractURI).length == 0) revert ContractURIRequired();
 
         contractURI = nextContractURI;
@@ -135,7 +147,7 @@ contract LaunchERC721Collection is ERC721Enumerable, AccessControl {
 
     function setBaseTokenURI(
         string calldata nextBaseTokenURI
-    ) external onlyRole(ROLE_MINTER_ADMIN) {
+    ) external onlyRole(COLLECTION_ADMIN_ROLE) {
         if (bytes(nextBaseTokenURI).length == 0) revert BaseTokenURIRequired();
 
         _baseTokenURI = nextBaseTokenURI;
@@ -143,10 +155,18 @@ contract LaunchERC721Collection is ERC721Enumerable, AccessControl {
         emit BaseTokenURIUpdated(nextBaseTokenURI);
     }
 
+    function setMintPrice(
+        uint256 nextMintPrice
+    ) external onlyRole(COLLECTION_ADMIN_ROLE) {
+        mintPrice = nextMintPrice;
+
+        emit MintPriceUpdated(nextMintPrice);
+    }
+
     function setCustomTokenURI(
         uint256 tokenId,
         string calldata nextTokenURI
-    ) external onlyRole(ROLE_MINTER_ADMIN) {
+    ) external onlyRole(COLLECTION_ADMIN_ROLE) {
         if (_ownerOf(tokenId) == address(0)) {
             revert NonexistentToken();
         }
@@ -154,6 +174,19 @@ contract LaunchERC721Collection is ERC721Enumerable, AccessControl {
         _customTokenURIs[tokenId] = nextTokenURI;
 
         emit CustomTokenURIUpdated(tokenId, nextTokenURI);
+    }
+
+    function withdraw(
+        address payable receiver
+    ) external onlyRole(COLLECTION_ADMIN_ROLE) {
+        if (receiver == address(0)) revert OwnerRequired();
+
+        uint256 amount = address(this).balance;
+
+        (bool success, ) = receiver.call{value: amount}("");
+        if (!success) revert WithdrawFailed();
+
+        emit Withdrawn(receiver, amount);
     }
 
     function baseTokenURI() external view returns (string memory) {
@@ -188,6 +221,15 @@ contract LaunchERC721Collection is ERC721Enumerable, AccessControl {
         }
 
         return string(abi.encodePacked(_baseTokenURI, tokenId.toString()));
+    }
+
+    function _mintNext(address to) internal returns (uint256 tokenId) {
+        if (nextTokenId > maxSupply) revert MaxSupplyReached();
+
+        tokenId = nextTokenId;
+        nextTokenId += 1;
+
+        _safeMint(to, tokenId);
     }
 
     function supportsInterface(

@@ -24,7 +24,10 @@
     "chain:local": "cd contracts/foundry && anvil --host 127.0.0.1 --port 8545 --chain-id 31337",
     "contracts:deploy:nft-collection:raw": "cd contracts/foundry && source .env && forge script script/DeployNftCollection.s.sol --rpc-url \"$LOCAL_RPC_URL\" --private-key \"$PRIVATE_KEY\" --broadcast",
     "contracts:sync:nft-collection": "node scripts/sync-nft-collection.mjs",
-    "deploy:nft-collection": "npm run contracts:build && npm run contracts:deploy:nft-collection:raw && npm run contracts:sync:nft-collection"
+    "deploy:nft-collection": "npm run contracts:build && npm run contracts:deploy:nft-collection:raw && npm run contracts:sync:nft-collection",
+    "contracts:deploy:nft-collection-factory:raw": "cd contracts/foundry && source .env && forge script script/DeployNftCollectionFactory.s.sol --rpc-url \"$LOCAL_RPC_URL\" --private-key \"$PRIVATE_KEY\" --broadcast",
+    "contracts:sync:nft-collection-factory": "node scripts/sync-nft-collection-factory.mjs",
+    "deploy:nft-collection-factory": "npm run contracts:build && npm run contracts:deploy:nft-collection-factory:raw && npm run contracts:sync:nft-collection-factory"
   },
   "keywords": [
     "web3",

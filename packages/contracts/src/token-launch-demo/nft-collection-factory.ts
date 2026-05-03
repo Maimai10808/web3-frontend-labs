@@ -1,5 +1,320 @@
 /* eslint-disable */
 
+export const launchERC721FactoryAbi = [
+  {
+    type: "function",
+    name: "collectionRecordByCollection",
+    inputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    outputs: [
+      {
+        name: "collection",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "creator",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "name",
+        type: "string",
+        internalType: "string",
+      },
+      {
+        name: "symbol",
+        type: "string",
+        internalType: "string",
+      },
+      {
+        name: "contractURI",
+        type: "string",
+        internalType: "string",
+      },
+      {
+        name: "baseTokenURI",
+        type: "string",
+        internalType: "string",
+      },
+      {
+        name: "maxSupply",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "mintPrice",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "createdAt",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "collectionsByCreator",
+    inputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "createCollection",
+    inputs: [
+      {
+        name: "config",
+        type: "tuple",
+        internalType: "struct LaunchERC721Factory.CollectionConfig",
+        components: [
+          {
+            name: "name",
+            type: "string",
+            internalType: "string",
+          },
+          {
+            name: "symbol",
+            type: "string",
+            internalType: "string",
+          },
+          {
+            name: "contractURI",
+            type: "string",
+            internalType: "string",
+          },
+          {
+            name: "baseTokenURI",
+            type: "string",
+            internalType: "string",
+          },
+          {
+            name: "maxSupply",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "mintPrice",
+            type: "uint256",
+            internalType: "uint256",
+          },
+        ],
+      },
+    ],
+    outputs: [
+      {
+        name: "collectionAddress",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "getCollectionCount",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getCollectionRecord",
+    inputs: [
+      {
+        name: "index",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [
+      {
+        name: "",
+        type: "tuple",
+        internalType: "struct LaunchERC721Factory.CollectionRecord",
+        components: [
+          {
+            name: "collection",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "creator",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "name",
+            type: "string",
+            internalType: "string",
+          },
+          {
+            name: "symbol",
+            type: "string",
+            internalType: "string",
+          },
+          {
+            name: "contractURI",
+            type: "string",
+            internalType: "string",
+          },
+          {
+            name: "baseTokenURI",
+            type: "string",
+            internalType: "string",
+          },
+          {
+            name: "maxSupply",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "mintPrice",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "createdAt",
+            type: "uint256",
+            internalType: "uint256",
+          },
+        ],
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getCreatorCollections",
+    inputs: [
+      {
+        name: "creator",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    outputs: [
+      {
+        name: "",
+        type: "address[]",
+        internalType: "address[]",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "event",
+    name: "CollectionCreated",
+    inputs: [
+      {
+        name: "creator",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "collection",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "name",
+        type: "string",
+        indexed: false,
+        internalType: "string",
+      },
+      {
+        name: "symbol",
+        type: "string",
+        indexed: false,
+        internalType: "string",
+      },
+      {
+        name: "contractURI",
+        type: "string",
+        indexed: false,
+        internalType: "string",
+      },
+      {
+        name: "baseTokenURI",
+        type: "string",
+        indexed: false,
+        internalType: "string",
+      },
+      {
+        name: "maxSupply",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+      {
+        name: "mintPrice",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "error",
+    name: "BaseTokenURIRequired",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "ContractURIRequired",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "MaxSupplyRequired",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "NameRequired",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "SymbolRequired",
+    inputs: [],
+  },
+] as const;
+
 export const launchERC721CollectionAbi = [
   {
     type: "constructor",
@@ -1202,20 +1517,20 @@ export const launchERC721CollectionAbi = [
   },
 ] as const;
 
-export const launchERC721CollectionAddress =
-  "0x9a9f2ccfde556a7e9ff0848998aa4a0cfd8863ae" as const;
+export const launchERC721FactoryAddress =
+  "0x68b1d87f95878fe05b998f19b66f4baba5de1aed" as const;
 
-export const launchERC721CollectionDeployment = {
-  contractName: "LaunchERC721Collection",
-  address: "0x9a9f2ccfde556a7e9ff0848998aa4a0cfd8863ae",
+export const launchERC721FactoryDeployment = {
+  contractName: "LaunchERC721Factory",
+  address: "0x68b1d87f95878fe05b998f19b66f4baba5de1aed",
   transactionHash:
-    "0xb127417cdb5e7a19eec067b6e58ba89192f33c8346a020015361913ecfbd4406",
+    "0x41be7c8536945099bfb4f5efb987445694bc83fa5e8a86b729a5a5277e4b86d6",
 } as const;
 
-export const nftCollectionDeploymentMeta = {
-  deploymentId: "local-31337-1777808686835",
+export const nftCollectionFactoryDeploymentMeta = {
+  deploymentId: "local-31337-1777808690990",
   chainId: 31337,
   networkName: "local",
-  deployScript: "DeployNftCollection.s.sol",
-  exportedAt: "2026-05-03T11:44:46.835Z",
+  deployScript: "DeployNftCollectionFactory.s.sol",
+  exportedAt: "2026-05-03T11:44:50.990Z",
 } as const;
