@@ -29,10 +29,11 @@ export type NftCollectionMetadataInput = {
 };
 
 export type NftCollectionMetadata = {
-  name: string;
-  description: string;
-  image: string;
+  name?: string;
+  description?: string;
+  image?: string;
   external_link?: string;
+  external_url?: string;
 };
 
 export type NftCollectionFormValues = {
@@ -132,4 +133,14 @@ export type NftCollectionInfo = {
   totalSupply: bigint;
   totalMinted: bigint;
   mintPrice: bigint;
+};
+
+export type NftCollectionCard = NftCollectionInfo & {
+  address: Address;
+  image?: string;
+  description?: string;
+  externalUrl?: string;
+  creator?: Address;
+  txHash?: `0x${string}`;
+  blockNumber?: bigint;
 };

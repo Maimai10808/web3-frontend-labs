@@ -2,7 +2,6 @@
 
 import type { Address } from "viem";
 import { formatEther } from "viem";
-import { nftCollectionAddress } from "@/lib/contracts/nft-contracts";
 import { useNftCollectionInfo } from "@/hooks/nft-launch/use-nft-collection-info";
 
 type NftCollectionCardProps = {
@@ -12,8 +11,7 @@ type NftCollectionCardProps = {
 export function NftCollectionCard({
   collectionAddress,
 }: NftCollectionCardProps) {
-  const activeCollectionAddress = collectionAddress ?? nftCollectionAddress;
-  const collectionQuery = useNftCollectionInfo(activeCollectionAddress);
+  const collectionQuery = useNftCollectionInfo(collectionAddress);
   const collection = collectionQuery.data;
 
   return (
@@ -21,12 +19,15 @@ export function NftCollectionCard({
       <div className="mb-4">
         <h2 className="text-lg font-semibold text-white">NFT Collection</h2>
         <p className="mt-1 text-sm text-gray-400">
-          Read collection metadata and supply state from the deployed ERC721
-          contract.
+          Read the selected collection metadata and supply state from chain.
         </p>
       </div>
 
-      {collectionQuery.isLoading ? (
+      {!collectionAddress ? (
+        <div className="rounded-xl border border-dashed border-white/10 bg-gray-950 p-4 text-sm text-gray-400">
+          Select a collection to view on-chain metadata and supply state.
+        </div>
+      ) : collectionQuery.isLoading ? (
         <div className="rounded-xl border border-white/10 bg-gray-950 p-4 text-sm text-gray-400">
           Loading collection...
         </div>
@@ -40,7 +41,7 @@ export function NftCollectionCard({
         <div className="grid gap-3 md:grid-cols-2">
           <InfoItem label="Name" value={collection.name} />
           <InfoItem label="Symbol" value={collection.symbol} />
-          <InfoItem label="Address" value={activeCollectionAddress} breakAll />
+          <InfoItem label="Address" value={collectionAddress} breakAll />
           <InfoItem
             label="Contract URI"
             value={collection.contractURI}

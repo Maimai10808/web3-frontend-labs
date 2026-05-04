@@ -1,60 +1,61 @@
 import { useReadContracts } from "wagmi";
 import type { Address } from "viem";
 
-import {
-  launchERC721CollectionAbi,
-  nftCollectionAddress,
-} from "@/lib/contracts/nft-contracts";
+import { launchERC721CollectionAbi } from "@/lib/contracts/nft-contracts";
 import type { NftCollectionInfo } from "@/lib/nft-launch/types";
 
 export function useNftCollectionInfo(collectionAddress?: Address | null) {
-  const activeCollectionAddress = collectionAddress ?? nftCollectionAddress;
-  const nftCollectionContract = {
-    address: activeCollectionAddress,
-    abi: launchERC721CollectionAbi,
-  } as const;
+  const nftCollectionContract = collectionAddress
+    ? ({
+        address: collectionAddress,
+        abi: launchERC721CollectionAbi,
+      } as const)
+    : null;
 
   return useReadContracts({
     allowFailure: false,
-    contracts: [
-      {
-        ...nftCollectionContract,
-        functionName: "name",
-      },
-      {
-        ...nftCollectionContract,
-        functionName: "symbol",
-      },
-      {
-        ...nftCollectionContract,
-        functionName: "contractURI",
-      },
-      {
-        ...nftCollectionContract,
-        functionName: "baseTokenURI",
-      },
-      {
-        ...nftCollectionContract,
-        functionName: "maxSupply",
-      },
-      {
-        ...nftCollectionContract,
-        functionName: "nextTokenId",
-      },
-      {
-        ...nftCollectionContract,
-        functionName: "totalSupply",
-      },
-      {
-        ...nftCollectionContract,
-        functionName: "totalMinted",
-      },
-      {
-        ...nftCollectionContract,
-        functionName: "mintPrice",
-      },
-    ],
+    contracts: nftCollectionContract
+      ? [
+          {
+            ...nftCollectionContract,
+            functionName: "name",
+          },
+          {
+            ...nftCollectionContract,
+            functionName: "symbol",
+          },
+          {
+            ...nftCollectionContract,
+            functionName: "contractURI",
+          },
+          {
+            ...nftCollectionContract,
+            functionName: "baseTokenURI",
+          },
+          {
+            ...nftCollectionContract,
+            functionName: "maxSupply",
+          },
+          {
+            ...nftCollectionContract,
+            functionName: "nextTokenId",
+          },
+          {
+            ...nftCollectionContract,
+            functionName: "totalSupply",
+          },
+          {
+            ...nftCollectionContract,
+            functionName: "totalMinted",
+          },
+          {
+            ...nftCollectionContract,
+            functionName: "mintPrice",
+          },
+        ]
+      : [],
     query: {
+      enabled: Boolean(nftCollectionContract),
       select(data): NftCollectionInfo {
         return {
           name: data[0] as string,

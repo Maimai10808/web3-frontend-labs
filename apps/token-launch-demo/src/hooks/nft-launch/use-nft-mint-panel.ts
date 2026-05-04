@@ -20,8 +20,9 @@ import type {
 } from "@/lib/nft-launch/types";
 
 type UseNftMintPanelParams = {
-  collectionAddress: Address;
+  collectionAddress?: Address | null;
   mintPrice: bigint;
+  onMinted?: () => void;
 };
 
 function parseAttributes(attributesText?: string): NftAttribute[] {
@@ -54,6 +55,7 @@ function parseAttributes(attributesText?: string): NftAttribute[] {
 export function useNftMintPanel({
   collectionAddress,
   mintPrice,
+  onMinted,
 }: UseNftMintPanelParams) {
   const account = useAccount();
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -129,6 +131,11 @@ export function useNftMintPanel({
 
     try {
       if (values.customTokenURI?.trim()) {
+        if (!collectionAddress) {
+          setLocalError("Select a collection before minting.");
+          return;
+        }
+
         const result = await mintNft.mutateAsync({
           collectionAddress,
           receiver: account.address ?? values.receiver,
@@ -136,6 +143,12 @@ export function useNftMintPanel({
           customTokenURI: values.customTokenURI,
         });
         setMintResult(result);
+        onMinted?.();
+        return;
+      }
+
+      if (!collectionAddress) {
+        setLocalError("Select a collection before minting.");
         return;
       }
 
@@ -169,6 +182,7 @@ export function useNftMintPanel({
         metadataURI: uploadedMetadata.metadataURI,
         metadata,
       });
+      onMinted?.();
     } catch (error) {
       setLocalError(error instanceof Error ? error.message : "NFT mint failed.");
     }
@@ -180,6 +194,8 @@ export function useNftMintPanel({
 
   const buttonLabel = !account.isConnected
     ? "Connect Wallet"
+    : !collectionAddress
+      ? "Select Collection"
     : isUploadingNftImage
       ? "Uploading image..."
       : isUploadingNftMetadata
@@ -190,6 +206,7 @@ export function useNftMintPanel({
 
   const isSubmitDisabled =
     !account.isConnected ||
+    !collectionAddress ||
     !form.formState.isValid ||
     isBusy ||
     (!advancedTokenURI && !imageFile);
@@ -197,6 +214,7 @@ export function useNftMintPanel({
   return {
     buttonLabel,
     combinedError,
+    hasSelectedCollection: Boolean(collectionAddress),
     form,
     handleImageFileChange,
     handleSubmit: form.handleSubmit(onSubmit),

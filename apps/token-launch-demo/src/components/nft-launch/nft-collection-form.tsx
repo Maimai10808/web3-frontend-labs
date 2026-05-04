@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { formatEther } from "viem";
+import { formatEther, type Address } from "viem";
 
 import { useCreateNftCollection } from "@/hooks/nft-launch/use-create-nft-collection";
 import { buildCollectionMetadata } from "@/lib/nft-launch/build-collection-metadata";
@@ -16,6 +16,7 @@ import type {
 
 type NftCollectionFormProps = {
   onCreated?: (result: CreateNftCollectionResult) => void;
+  onCollectionCreated?: (collectionAddress: Address) => void;
 };
 
 const initialValues: NftCollectionFormValues = {
@@ -111,7 +112,10 @@ function getStepLabel(step: NftCollectionCreateStep) {
   return "Ready to create collection.";
 }
 
-export function NftCollectionForm({ onCreated }: NftCollectionFormProps) {
+export function NftCollectionForm({
+  onCreated,
+  onCollectionCreated,
+}: NftCollectionFormProps) {
   const [values, setValues] = useState<NftCollectionFormValues>(initialValues);
   const [formError, setFormError] = useState<string | null>(null);
   const createCollection = useCreateNftCollection();
@@ -190,6 +194,7 @@ export function NftCollectionForm({ onCreated }: NftCollectionFormProps) {
     try {
       const result = await createCollection.createCollection(parsed.data);
       onCreated?.(result);
+      onCollectionCreated?.(result.collectionAddress);
     } catch {
       // The hook exposes the error below.
     }
@@ -388,9 +393,12 @@ function CollectionMetadataPreview({
 
       {displayMetadata ? (
         <div className="grid gap-2 text-sm">
-          <PreviewRow label="name" value={displayMetadata.name} />
-          <PreviewRow label="description" value={displayMetadata.description} />
-          <PreviewRow label="image" value={displayMetadata.image} />
+          <PreviewRow label="name" value={displayMetadata.name ?? ""} />
+          <PreviewRow
+            label="description"
+            value={displayMetadata.description ?? ""}
+          />
+          <PreviewRow label="image" value={displayMetadata.image ?? ""} />
           {displayMetadata.external_link ? (
             <PreviewRow
               label="external_link"

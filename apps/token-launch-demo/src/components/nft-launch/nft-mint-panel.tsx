@@ -7,18 +7,21 @@ import { NftMetadataPreview } from "./nft-metadata-preview";
 import { NftMintResultCard } from "./nft-mint-result-card";
 
 type NftMintPanelProps = {
-  collectionAddress: Address;
+  collectionAddress?: Address | null;
   mintPrice: bigint;
+  onMinted?: () => void;
 };
 
 export function NftMintPanel({
   collectionAddress,
   mintPrice,
+  onMinted,
 }: NftMintPanelProps) {
   const {
     buttonLabel,
     combinedError,
     form,
+    hasSelectedCollection,
     handleImageFileChange,
     handleSubmit,
     isSubmitDisabled,
@@ -26,7 +29,7 @@ export function NftMintPanel({
     previewImageURI,
     previewMetadata,
     previewMetadataURI,
-  } = useNftMintPanel({ collectionAddress, mintPrice });
+  } = useNftMintPanel({ collectionAddress, mintPrice, onMinted });
 
   return (
     <section className="grid gap-4">
@@ -34,10 +37,17 @@ export function NftMintPanel({
         <div className="mb-4">
           <h2 className="text-lg font-semibold text-white">Mint NFT</h2>
           <p className="mt-1 text-sm text-gray-400">
-            Upload NFT image and metadata to IPFS, then mint with the metadata
-            URI as the tokenURI.
+            {hasSelectedCollection
+              ? `Minting to ${collectionAddress}`
+              : "Select a collection before minting."}
           </p>
         </div>
+
+        {!hasSelectedCollection ? (
+          <div className="mb-4 rounded-xl border border-dashed border-white/10 bg-gray-950 p-3 text-sm text-gray-400">
+            Select a collection from Your NFT Collections to enable minting.
+          </div>
+        ) : null}
 
         <form onSubmit={handleSubmit} className="grid gap-4">
           <div>
