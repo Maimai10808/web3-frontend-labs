@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 import { nftCollectionAddress } from "@/lib/contracts/nft-contracts";
-import type { CreateNftCollectionResult } from "@/lib/token-launch/types";
+import type { CreateNftCollectionResult } from "@/lib/nft-launch/types";
 import { NftCollectionCard } from "./nft-collection-card";
 import { NftEventHistory } from "./nft-event-history";
 import { NftCollectionForm } from "./nft-collection-form";
