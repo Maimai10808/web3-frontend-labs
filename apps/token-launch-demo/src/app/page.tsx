@@ -1,6 +1,5 @@
-import { TokenLaunchForm } from "@/components/token-launch/token-launch-form";
 import { WalletStatusPanel } from "@/components/token-launch/wallet-status-panel";
-import { NftLaunchSection } from "@/components/nft-launch/nft-launch-section";
+import { TokenLaunchDemoShell } from "@/components/token-launch-demo-shell";
 
 export default function Page() {
   return (
@@ -18,9 +17,7 @@ export default function Page() {
         </div>
 
         <WalletStatusPanel />
-        <TokenLaunchForm />
-
-        <NftLaunchSection />
+        <TokenLaunchDemoShell />
       </div>
     </main>
   );
