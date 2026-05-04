@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { formatEther, type Address } from "viem";
 import type { NftCollectionCard } from "@/lib/nft-launch/types";
 
@@ -30,6 +31,20 @@ export function NftCollectionGallery({
   error,
   onRefresh,
 }: NftCollectionGalleryProps) {
+  const [pendingCollectionAddress, setPendingCollectionAddress] =
+    useState<Address | null>(null);
+  const effectivePendingAddress =
+    pendingCollectionAddress ?? selectedCollectionAddress ?? null;
+
+  const confirmSelection = () => {
+    if (!effectivePendingAddress) {
+      return;
+    }
+
+    onSelectCollection(effectivePendingAddress);
+    setPendingCollectionAddress(null);
+  };
+
   return (
     <section className="rounded-2xl border border-white/10 bg-gray-900 p-4">
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -54,11 +69,11 @@ export function NftCollectionGallery({
       </div>
 
       {isLoading ? (
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+        <div className="space-y-3">
           {[0, 1, 2].map((item) => (
             <div
               key={item}
-              className="h-72 animate-pulse rounded-2xl border border-white/10 bg-gray-950"
+              className="h-28 animate-pulse rounded-2xl border border-white/10 bg-gray-950"
             />
           ))}
         </div>
@@ -78,100 +93,129 @@ export function NftCollectionGallery({
       ) : null}
 
       {!isLoading && !isError && collections.length > 0 ? (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {collections.map((collection) => {
-            const selected =
-              selectedCollectionAddress?.toLowerCase() ===
-              collection.address.toLowerCase();
+        <>
+          <div className="space-y-3">
+            {collections.map((collection) => {
+              const selected =
+                selectedCollectionAddress?.toLowerCase() ===
+                collection.address.toLowerCase();
+              const pending =
+                effectivePendingAddress?.toLowerCase() ===
+                collection.address.toLowerCase();
+              const showPreview = pending && !selected;
 
-            return (
-              <article
-                key={collection.address}
-                className={`overflow-hidden rounded-2xl border bg-gray-950 transition ${
-                  selected
-                    ? "border-blue-400/70 shadow-lg shadow-blue-950/40"
-                    : "border-white/10 hover:border-white/20"
-                }`}
-              >
-                {collection.image ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={collection.image}
-                    alt={collection.name}
-                    className="aspect-[4/3] w-full object-cover"
-                  />
-                ) : (
-                  <div className="flex aspect-[4/3] items-center justify-center bg-gradient-to-br from-blue-600/30 via-emerald-500/20 to-gray-950 text-sm text-gray-300">
-                    Collection Cover
-                  </div>
-                )}
+              return (
+                <article
+                  key={collection.address}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setPendingCollectionAddress(collection.address)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      setPendingCollectionAddress(collection.address);
+                    }
+                  }}
+                  className={`cursor-pointer rounded-2xl border bg-gray-950 p-3 outline-none transition focus-visible:ring-2 focus-visible:ring-blue-400 ${
+                    pending
+                      ? "border-blue-400/70 bg-blue-500/10 shadow-lg shadow-blue-950/30"
+                      : "border-white/10 hover:border-white/20 hover:bg-white/[0.03]"
+                  }`}
+                >
+                  <div className="flex flex-col gap-4 md:flex-row md:items-start">
+                    {collection.image ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={collection.image}
+                        alt={collection.name}
+                        className="h-24 w-full rounded-xl border border-white/10 object-cover md:h-24 md:w-24"
+                      />
+                    ) : (
+                      <div className="flex h-24 w-full shrink-0 items-center justify-center rounded-xl border border-white/10 bg-gradient-to-br from-blue-600/30 via-emerald-500/20 to-gray-950 text-sm text-gray-300 md:w-24">
+                        Collection Cover
+                      </div>
+                    )}
 
-                <div className="grid gap-3 p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <h3 className="truncate text-base font-semibold text-white">
-                        {collection.name}
-                      </h3>
-                      <p className="mt-1 text-xs text-gray-500">
-                        {collection.symbol}
-                      </p>
+                    <div className="min-w-0 flex-1 space-y-3">
+                      <div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h3 className="truncate text-base font-semibold text-white">
+                            {collection.name}
+                          </h3>
+                          <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-xs text-gray-300">
+                            {collection.symbol}
+                          </span>
+                        </div>
+                        <p className="mt-1 break-all text-xs text-gray-500">
+                          {collection.address}
+                        </p>
+                      </div>
+
+                      <div className="grid gap-2 text-xs md:grid-cols-3">
+                        <CardRow
+                          label="Supply"
+                          value={`${collection.totalMinted.toString()} / ${collection.maxSupply.toString()}`}
+                        />
+                        <CardRow
+                          label="Mint Price"
+                          value={`${formatEther(collection.mintPrice)} ETH`}
+                        />
+                        {collection.blockNumber ? (
+                          <CardRow
+                            label="Created"
+                            value={`Block ${collection.blockNumber.toString()}`}
+                          />
+                        ) : (
+                          <CardRow label="Created" value="On-chain" />
+                        )}
+                      </div>
+
+                      <div className="grid gap-2 text-xs md:grid-cols-2">
+                        {collection.creator ? (
+                          <CardRow
+                            label="Creator"
+                            value={shorten(collection.creator)}
+                          />
+                        ) : null}
+                        <CardRow
+                          label="Contract URI"
+                          value={collection.contractURI}
+                          breakAll
+                        />
+                      </div>
                     </div>
-                    {selected ? (
-                      <span className="rounded-full border border-blue-500/30 bg-blue-500/10 px-2 py-1 text-xs text-blue-100">
-                        Selected
-                      </span>
-                    ) : null}
-                  </div>
 
-                  <div className="grid gap-2 text-xs">
-                    <CardRow
-                      label="Address"
-                      value={shorten(collection.address)}
-                    />
-                    <CardRow
-                      label="Supply"
-                      value={`${collection.totalMinted.toString()} / ${collection.maxSupply.toString()}`}
-                    />
-                    <CardRow
-                      label="Mint Price"
-                      value={`${formatEther(collection.mintPrice)} ETH`}
-                    />
-                    {collection.creator ? (
-                      <CardRow
-                        label="Creator"
-                        value={shorten(collection.creator)}
-                      />
-                    ) : null}
-                    {collection.blockNumber ? (
-                      <CardRow
-                        label="Created"
-                        value={`Block ${collection.blockNumber.toString()}`}
-                      />
-                    ) : null}
-                    <CardRow
-                      label="Contract URI"
-                      value={collection.contractURI}
-                      breakAll
-                    />
+                    <div className="flex min-h-7 w-24 shrink-0 flex-row justify-end gap-2 md:flex-col md:items-end">
+                      {selected ? (
+                        <span className="rounded-full border border-blue-500/30 bg-blue-500/10 px-2 py-1 text-xs text-blue-100">
+                          Selected
+                        </span>
+                      ) : null}
+                      {showPreview ? (
+                        <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-1 text-xs text-emerald-100">
+                          Preview
+                        </span>
+                      ) : null}
+                    </div>
                   </div>
+                </article>
+              );
+            })}
+          </div>
 
-                  <button
-                    type="button"
-                    onClick={() => onSelectCollection(collection.address)}
-                    disabled={selected}
-                    className={`rounded-xl px-3 py-2 text-sm font-medium transition disabled:cursor-default ${
-                      selected
-                        ? "bg-blue-500/15 text-blue-100"
-                        : "bg-blue-600 text-white hover:bg-blue-500"
-                    }`}
-                  >
-                    {selected ? "Selected" : "Select Collection"}
-                  </button>
-                </div>
-              </article>
-            );
-          })}
-        </div>
+          <div className="mt-4 border-t border-white/10 pt-4">
+            <button
+              type="button"
+              disabled={!effectivePendingAddress}
+              onClick={confirmSelection}
+              className="w-full rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {effectivePendingAddress
+                ? "Use Selected Collection"
+                : "Select a Collection"}
+            </button>
+          </div>
+        </>
       ) : null}
     </section>
   );
