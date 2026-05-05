@@ -19,6 +19,8 @@ import {
 import { useClaimStatus } from "@/hooks/campaign/use-claim-status";
 import { useEligibility } from "@/hooks/campaign/use-eligibility";
 import { useReferral } from "@/hooks/referral/use-referral";
+import { LeaderboardTable } from "@/components/leaderboard/leaderboard-table";
+import { useLeaderboard } from "@/hooks/leaderboard/use-leaderboard";
 
 export function AirdropGrowthDemoShell() {
   const [tasks, setTasks] = useState<GrowthTask[]>([]);
@@ -72,6 +74,9 @@ export function AirdropGrowthDemoShell() {
     };
   };
 
+  const { leaderboard, isLoadingLeaderboard, leaderboardError } =
+    useLeaderboard();
+
   return (
     <div className="grid gap-6">
       <WalletStatusPanel />
@@ -118,6 +123,14 @@ export function AirdropGrowthDemoShell() {
           isLoading={isLoadingReferral}
           errorMessage={
             referralError instanceof Error ? referralError.message : null
+          }
+        />
+
+        <LeaderboardTable
+          items={leaderboard}
+          isLoading={isLoadingLeaderboard}
+          errorMessage={
+            leaderboardError instanceof Error ? leaderboardError.message : null
           }
         />
       </div>

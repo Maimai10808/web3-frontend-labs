@@ -96,3 +96,12 @@ export type ReferralStats = {
   referralPoints: number;
   rewardMultiplier: number;
 };
+
+export type LeaderboardItem = {
+  rank: number;
+  address: string;
+  displayName?: string;
+  points: number;
+  invitedCount: number;
+  rewardMultiplier: number;
+};
