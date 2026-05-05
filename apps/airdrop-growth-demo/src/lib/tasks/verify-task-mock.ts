@@ -1,3 +1,4 @@
+import { verifyMessage, type Address, type Hex } from "viem";
 import type { VerifyTaskRequest, VerifyTaskResult } from "@/lib/campaign/types";
 import { TASK_DEFINITIONS } from "./task-definitions";
 
@@ -54,14 +55,29 @@ export async function verifyTaskMock(
       };
     }
 
-    if (input.signature && input.message) {
+    if (!input.signature || !input.message) {
       return {
         taskId: task.id,
         taskType: task.type,
-        status: "verified",
-        pointsAwarded: task.points,
-        message: "Wallet signature verified.",
-        verifiedAt: Date.now(),
+        status: "failed",
+        pointsAwarded: 0,
+        message: "Missing signature payload.",
+      };
+    }
+
+    const isValid = await verifyMessage({
+      address: input.walletAddress as Address,
+      message: input.message,
+      signature: input.signature as Hex,
+    });
+
+    if (!isValid) {
+      return {
+        taskId: task.id,
+        taskType: task.type,
+        status: "failed",
+        pointsAwarded: 0,
+        message: "Signature verification failed.",
       };
     }
 
@@ -70,7 +86,7 @@ export async function verifyTaskMock(
       taskType: task.type,
       status: "verified",
       pointsAwarded: task.points,
-      message: "Mock signature verified.",
+      message: "Wallet signature verified on the server.",
       verifiedAt: Date.now(),
     };
   }

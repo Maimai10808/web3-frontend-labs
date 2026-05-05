@@ -1,4 +1,4 @@
-import { TaskList } from "@/components/tasks/task-list";
+import { AirdropGrowthDemoShell } from "@/components/airdrop-growth-demo-shell";
 
 export default function Page() {
   return (
@@ -15,7 +15,7 @@ export default function Page() {
           </p>
         </header>
 
-        <TaskList />
+        <AirdropGrowthDemoShell />
       </div>
     </main>
   );

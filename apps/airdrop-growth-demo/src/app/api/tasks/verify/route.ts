@@ -1,39 +1,7 @@
 import { NextResponse } from "next/server";
-import { isAddress, type Address, type Hex } from "viem";
+import type { Address, Hex } from "viem";
 import { z } from "zod";
 import { verifyTaskMock } from "@/lib/tasks/verify-task-mock";
-
-function emptyStringToUndefined(value: unknown) {
-  if (typeof value !== "string") {
-    return value;
-  }
-
-  const trimmed = value.trim();
-  return trimmed.length > 0 ? trimmed : undefined;
-}
-
-const optionalAddress = z.preprocess(
-  emptyStringToUndefined,
-  z
-    .string()
-    .refine((value) => isAddress(value), "Invalid wallet address.")
-    .transform((value) => value as Address)
-    .optional(),
-);
-
-const optionalHex = z.preprocess(
-  emptyStringToUndefined,
-  z
-    .string()
-    .regex(/^0x[0-9a-fA-F]*$/, "Invalid hex signature.")
-    .transform((value) => value as Hex)
-    .optional(),
-);
-
-const optionalTrimmedString = z.preprocess(
-  emptyStringToUndefined,
-  z.string().optional(),
-);
 
 const verifyTaskRequestSchema = z.object({
   taskId: z.string().trim().min(1),
@@ -44,9 +12,19 @@ const verifyTaskRequestSchema = z.object({
     "sign_message",
     "visit_website",
   ]),
-  walletAddress: optionalAddress,
-  signature: optionalHex,
-  message: optionalTrimmedString,
+  walletAddress: z
+    .string()
+    .trim()
+    .regex(/^0x[a-fA-F0-9]{40}$/, "Invalid wallet address.")
+    .transform((value) => value as Address)
+    .optional(),
+  signature: z
+    .string()
+    .trim()
+    .regex(/^0x[a-fA-F0-9]+$/, "Invalid signature.")
+    .transform((value) => value as Hex)
+    .optional(),
+  message: z.string().trim().optional(),
 });
 
 export async function POST(request: Request) {

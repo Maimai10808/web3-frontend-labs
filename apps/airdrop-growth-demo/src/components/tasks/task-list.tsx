@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import type { Address } from "viem";
 import type { GrowthTask, SignMessagePayload } from "@/lib/campaign/types";
 import { useTaskList } from "@/hooks/tasks/use-task-list";
@@ -10,12 +11,21 @@ import { TaskVerificationResult } from "./task-verification-result";
 type TaskListProps = {
   walletAddress?: Address;
   onSignMessage?: () => Promise<SignMessagePayload | null>;
+  onTasksChange?: (tasks: GrowthTask[]) => void;
 };
 
-export function TaskList({ walletAddress, onSignMessage }: TaskListProps) {
+export function TaskList({
+  walletAddress,
+  onSignMessage,
+  onTasksChange,
+}: TaskListProps) {
   const { tasks, isLoadingTasks, taskListError } = useTaskList(walletAddress);
   const { verifyTask, verificationResult, isVerifyingTask, verifyTaskError } =
     useVerifyTask(walletAddress);
+
+  useEffect(() => {
+    onTasksChange?.(tasks);
+  }, [tasks, onTasksChange]);
 
   const handleVerify = async (task: GrowthTask) => {
     if (task.type === "sign_message" && onSignMessage) {

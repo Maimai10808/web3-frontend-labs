@@ -77,3 +77,13 @@ export type CampaignState = {
   totalPoints: number;
   claimStatus: ClaimStatus;
 };
+
+export type ClaimResult = {
+  txHash: string;
+  rewardType: "erc20" | "nft";
+  amount?: string;
+  tokenId?: string;
+  claimedAt: number;
+  hasClaimed: boolean;
+  rewardBalance?: string;
+};
