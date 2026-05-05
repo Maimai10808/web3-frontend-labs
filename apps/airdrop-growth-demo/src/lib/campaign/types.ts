@@ -87,3 +87,12 @@ export type ClaimResult = {
   hasClaimed: boolean;
   rewardBalance?: string;
 };
+
+export type ReferralStats = {
+  address: string;
+  referralCode: string;
+  referralLink: string;
+  invitedCount: number;
+  referralPoints: number;
+  rewardMultiplier: number;
+};

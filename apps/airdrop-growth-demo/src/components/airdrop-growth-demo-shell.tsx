@@ -7,6 +7,8 @@ import { ClaimRewardCard } from "@/components/claim/claim-reward-card";
 import { ClaimStatusCard } from "@/components/campaign/claim-status-card";
 import { EligibilityCard } from "@/components/campaign/eligibility-card";
 import { WalletStatusPanel } from "@/components/campaign/wallet-status-panel";
+import { ReferralCard } from "@/components/referral/referral-card";
+import { ReferralPointsCard } from "@/components/referral/referral-points-card";
 import { TaskList } from "@/components/tasks/task-list";
 import type { GrowthTask, SignMessagePayload } from "@/lib/campaign/types";
 import { AIRDROP_GROWTH_SIGN_MESSAGE } from "@/lib/campaign/constants";
@@ -16,6 +18,7 @@ import {
 } from "@/lib/contracts/airdrop-growth";
 import { useClaimStatus } from "@/hooks/campaign/use-claim-status";
 import { useEligibility } from "@/hooks/campaign/use-eligibility";
+import { useReferral } from "@/hooks/referral/use-referral";
 
 export function AirdropGrowthDemoShell() {
   const [tasks, setTasks] = useState<GrowthTask[]>([]);
@@ -46,6 +49,9 @@ export function AirdropGrowthDemoShell() {
       tasks,
       hasClaimed,
     });
+
+  const { referralStats, referralLink, isLoadingReferral, referralError } =
+    useReferral();
 
   const handleSignMessage = async (): Promise<SignMessagePayload | null> => {
     if (!isConnected || !address) {
@@ -98,6 +104,23 @@ export function AirdropGrowthDemoShell() {
       </div>
 
       <ClaimRewardCard claimStatus={claimStatus} />
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <ReferralCard
+          referralLink={referralLink}
+          isLoading={isLoadingReferral}
+          errorMessage={
+            referralError instanceof Error ? referralError.message : null
+          }
+        />
+        <ReferralPointsCard
+          referralStats={referralStats}
+          isLoading={isLoadingReferral}
+          errorMessage={
+            referralError instanceof Error ? referralError.message : null
+          }
+        />
+      </div>
     </div>
   );
 }
