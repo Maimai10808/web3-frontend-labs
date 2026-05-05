@@ -1,17 +1,23 @@
 "use client";
 
-import type { ClaimStatus } from "@/lib/campaign/types";
-import { useClaimReward } from "@/hooks/claim/use-claim-reward";
+import type { ClaimResult, ClaimStatus } from "@/lib/campaign/types";
 import { ClaimResultCard } from "./claim-result-card";
 
 type ClaimRewardCardProps = {
   claimStatus: ClaimStatus;
+  onClaim: () => void | Promise<void>;
+  result: ClaimResult | null;
+  isClaiming: boolean;
+  errorMessage?: string | null;
 };
 
-export function ClaimRewardCard({ claimStatus }: ClaimRewardCardProps) {
-  const { claimReward, claimRewardResult, isClaimingReward, claimRewardError } =
-    useClaimReward();
-
+export function ClaimRewardCard({
+  claimStatus,
+  onClaim,
+  result,
+  isClaiming,
+  errorMessage = null,
+}: ClaimRewardCardProps) {
   const canClaim = claimStatus === "claimable";
 
   return (
@@ -29,11 +35,9 @@ export function ClaimRewardCard({ claimStatus }: ClaimRewardCardProps) {
           <div className="text-sm text-white">{claimStatus}</div>
         </div>
 
-        {claimRewardError ? (
+        {errorMessage ? (
           <div className="mt-4 rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-200">
-            {claimRewardError instanceof Error
-              ? claimRewardError.message
-              : "Failed to claim reward."}
+            {errorMessage}
           </div>
         ) : null}
 
@@ -41,17 +45,17 @@ export function ClaimRewardCard({ claimStatus }: ClaimRewardCardProps) {
           <button
             type="button"
             onClick={() => {
-              void claimReward();
+              void onClaim();
             }}
-            disabled={!canClaim || isClaimingReward}
+            disabled={!canClaim || isClaiming}
             className="rounded-xl bg-blue-600 px-4 py-2 text-sm text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {isClaimingReward ? "Claiming..." : "Claim Reward"}
+            {isClaiming ? "Claiming..." : "Claim Reward"}
           </button>
         </div>
       </section>
 
-      <ClaimResultCard result={claimRewardResult} />
+      <ClaimResultCard result={result} />
     </div>
   );
 }

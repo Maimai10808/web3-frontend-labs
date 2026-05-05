@@ -105,3 +105,56 @@ export type LeaderboardItem = {
   invitedCount: number;
   rewardMultiplier: number;
 };
+
+export type GrowthEvent =
+  | {
+      type: "wallet_connected";
+      message: string;
+      address?: string;
+    }
+  | {
+      type: "wallet_signed";
+      message: string;
+    }
+  | {
+      type: "task_verified";
+      message: string;
+      taskId: string;
+    }
+  | {
+      type: "task_verification_failed";
+      message: string;
+      taskId: string;
+    }
+  | {
+      type: "eligibility_updated";
+      message: string;
+      claimStatus: ClaimStatus;
+    }
+  | {
+      type: "claim_submitted";
+      message: string;
+      txHash: string;
+    }
+  | {
+      type: "claim_confirmed";
+      message: string;
+      txHash: string;
+    }
+  | {
+      type: "claim_failed";
+      message: string;
+    }
+  | {
+      type: "referral_loaded";
+      message: string;
+    }
+  | {
+      type: "leaderboard_loaded";
+      message: string;
+    };
+
+export type GrowthEventLogEntry = GrowthEvent & {
+  id: string;
+  createdAt: string;
+};
