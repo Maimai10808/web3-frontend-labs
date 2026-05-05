@@ -6,13 +6,20 @@ import {
   AIRDROP_GROWTH_CLAIM_DEADLINE,
   AIRDROP_GROWTH_POINTS_THRESHOLD,
 } from "@/lib/campaign/constants";
-import { calculateEligibility } from "@/lib/campaign/calculate-eligibility";
 
 type UseClaimStatusParams = {
   tasks: GrowthTask[];
   hasClaimed?: boolean;
   claimDeadline?: number;
   pointsThreshold?: number;
+};
+
+type ClaimStatusResponse = {
+  ok: boolean;
+  message?: string;
+  result?: {
+    claimStatus: ClaimStatus;
+  };
 };
 
 export function useClaimStatus({
@@ -31,14 +38,26 @@ export function useClaimStatus({
       pointsThreshold,
     ],
     queryFn: async (): Promise<ClaimStatus> => {
-      const result = calculateEligibility({
-        tasks,
-        hasClaimed,
-        claimDeadline,
-        pointsThreshold,
+      const response = await fetch("/api/campaign/claim-status", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          tasks,
+          hasClaimed,
+          claimDeadline,
+          pointsThreshold,
+        }),
       });
 
-      return result.claimStatus;
+      const payload = (await response.json()) as ClaimStatusResponse;
+
+      if (!response.ok || !payload.ok || !payload.result) {
+        throw new Error(payload.message ?? "Failed to load claim status.");
+      }
+
+      return payload.result.claimStatus;
     },
     staleTime: 5_000,
   });
