@@ -57,3 +57,23 @@ export type SignMessagePayload = {
   message: string;
   signature: Hex;
 };
+
+export type ClaimStatus = "unqualified" | "claimable" | "claimed" | "expired";
+
+export type EligibilityResult = {
+  qualified: boolean;
+  reason?: string;
+  totalPoints: number;
+  pointsThreshold: number;
+  claimStatus: ClaimStatus;
+};
+
+export type CampaignState = {
+  campaignId: string;
+  title: string;
+  rewardType: "erc20" | "nft";
+  claimDeadline: number;
+  pointsThreshold: number;
+  totalPoints: number;
+  claimStatus: ClaimStatus;
+};

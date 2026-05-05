@@ -15,7 +15,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Airdrop Growth Demo",
-  description: "Airdrop Growth Demo.",
+  description:
+    "A Web3 C-end growth system demo with tasks, eligibility, referral, leaderboard, and claim flows.",
 };
 
 export default function RootLayout({
