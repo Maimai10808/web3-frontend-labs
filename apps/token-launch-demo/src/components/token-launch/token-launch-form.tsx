@@ -71,7 +71,7 @@ export function TokenLaunchForm() {
             />
           </FormField>
 
-          <FormField label="Website" error={fieldErrors.website?.[0]}>
+          <FormField label="Website" error={fieldErrors.website?.[0]} optional>
             <input
               value={formValues.website}
               onChange={(event) => handleChange("website", event.target.value)}
@@ -80,7 +80,7 @@ export function TokenLaunchForm() {
             />
           </FormField>
 
-          <FormField label="Twitter" error={fieldErrors.twitter?.[0]}>
+          <FormField label="Twitter" error={fieldErrors.twitter?.[0]} optional>
             <input
               value={formValues.twitter}
               onChange={(event) => handleChange("twitter", event.target.value)}
@@ -89,7 +89,11 @@ export function TokenLaunchForm() {
             />
           </FormField>
 
-          <FormField label="Telegram" error={fieldErrors.telegram?.[0]}>
+          <FormField
+            label="Telegram"
+            error={fieldErrors.telegram?.[0]}
+            optional
+          >
             <input
               value={formValues.telegram}
               onChange={(event) => handleChange("telegram", event.target.value)}
@@ -275,15 +279,24 @@ function LogoUploadStatus({
 function FormField({
   label,
   error,
+  optional,
   children,
 }: {
   label: string;
   error?: string;
+  optional?: boolean;
   children: React.ReactNode;
 }) {
   return (
     <div className="block">
-      <div className="mb-2 text-sm font-medium text-gray-200">{label}</div>
+      <div className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-200">
+        <span>{label}</span>
+        {optional ? (
+          <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[11px] font-normal text-gray-400">
+            Optional
+          </span>
+        ) : null}
+      </div>
       {children}
       {error ? <div className="mt-2 text-xs text-red-300">{error}</div> : null}
     </div>
