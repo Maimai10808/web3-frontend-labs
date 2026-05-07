@@ -4,22 +4,22 @@ function encodeSseMessage(event: string, data: unknown) {
   return `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   let cleanupStream = () => {};
 
   const stream = new ReadableStream({
     start(controller) {
       const encoder = new TextEncoder();
-      let closed = false;
+      let cleanedUp = false;
       let heartbeat: ReturnType<typeof setInterval> | null = null;
       let unsubscribe: (() => void) | null = null;
 
       const cleanup = () => {
-        if (closed) {
+        if (cleanedUp) {
           return;
         }
 
-        closed = true;
+        cleanedUp = true;
 
         if (heartbeat) {
           clearInterval(heartbeat);
@@ -30,16 +30,10 @@ export async function GET() {
           unsubscribe();
           unsubscribe = null;
         }
-
-        try {
-          controller.close();
-        } catch {
-          // stream may already be closed by runtime
-        }
       };
 
       const safeEnqueue = (event: string, data: unknown) => {
-        if (closed) {
+        if (cleanedUp || request.signal.aborted) {
           return false;
         }
 
@@ -53,6 +47,7 @@ export async function GET() {
       };
 
       cleanupStream = cleanup;
+      request.signal.addEventListener("abort", cleanup, { once: true });
 
       safeEnqueue("ready", {
         connectedAt: new Date().toISOString(),
