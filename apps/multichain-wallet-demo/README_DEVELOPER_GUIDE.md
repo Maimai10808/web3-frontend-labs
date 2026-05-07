@@ -4,7 +4,7 @@
 
 This document is a source-code-based implementation guide for developers.
 
-It is not the showcase README.  
+It is not the showcase README.
 It explains how this app is actually built: providers, adapters, hooks, UI wiring, mock API routes, and state normalization.
 
 If you are onboarding to this codebase, this guide should help you understand:
@@ -18,16 +18,16 @@ If you are onboarding to this codebase, this guide should help you understand:
 
 ## 2. Reality Check: Implemented vs Expected
 
-The project name and UI messaging focus on multichain architecture.  
+The project name and UI messaging focus on multichain architecture.
 In code, the current ecosystem status is:
 
-| Ecosystem | Status in this repo |
-| --- | --- |
-| EVM | Implemented (wagmi + viem adapter flow) |
-| Solana | Implemented (Solana Wallet Adapter + injected provider fallback paths) |
-| BTC | Implemented (UniSat + OKX BTC adapters) |
-| Sei | Implemented (Compass/Keplr/Leap adapter flow) |
-| TON | **Reserved placeholder only** (no TON Connect integration yet) |
+| Ecosystem | Status in this repo                                                    |
+| --------- | ---------------------------------------------------------------------- |
+| EVM       | Implemented (wagmi + viem adapter flow)                                |
+| Solana    | Implemented (Solana Wallet Adapter + injected provider fallback paths) |
+| BTC       | Implemented (UniSat + OKX BTC adapters)                                |
+| Sei       | Implemented (Compass/Keplr/Leap adapter flow)                          |
+| TON       | **Reserved placeholder only** (no TON Connect integration yet)         |
 
 Important clarification:
 
@@ -157,7 +157,7 @@ So the default Solana environment is devnet-oriented.
 
 ### 4.4 i18n routing note
 
-`packages/i18n/src/config.ts` includes `en`, `zh-CN`, `ja`.  
+`packages/i18n/src/config.ts` includes `en`, `zh-CN`, `ja`.
 `apps/multichain-wallet-demo/middleware.ts` matcher currently includes `/` and `/(zh-CN|en)/:path*` only.
 
 If `ja` routes should be directly matched in middleware, update matcher accordingly.
@@ -191,7 +191,7 @@ In `evm-adapter.ts`, wagmi `createConfig` defines:
 - `walletconnect`
 - `injected`
 
-The hook performs extension/connector checks before connection.  
+The hook performs extension/connector checks before connection.
 Examples:
 
 - MetaMask: checks injected provider flags.
@@ -387,14 +387,14 @@ This is the core architecture idea of the project.
 
 ### 9.4 Shared vs chain-specific fields
 
-| Field | Shared? | Notes |
-| --- | --- | --- |
-| `namespace` | Yes | one of normalized namespaces |
-| `walletName` | Yes | provider label for UI |
-| `address` | Yes (string) | semantic meaning differs by ecosystem |
-| `chainId` | Partial | EVM numeric-like chain context; others often use network string |
-| signing methods | No | exposed by `WalletCapability` per adapter |
-| switch network | No | generally EVM-only in this app |
+| Field           | Shared?      | Notes                                                           |
+| --------------- | ------------ | --------------------------------------------------------------- |
+| `namespace`     | Yes          | one of normalized namespaces                                    |
+| `walletName`    | Yes          | provider label for UI                                           |
+| `address`       | Yes (string) | semantic meaning differs by ecosystem                           |
+| `chainId`       | Partial      | EVM numeric-like chain context; others often use network string |
+| signing methods | No           | exposed by `WalletCapability` per adapter                       |
+| switch network  | No           | generally EVM-only in this app                                  |
 
 Important design point:
 
@@ -422,13 +422,13 @@ Important design point:
 
 ### 10.3 Implemented signing modes
 
-| Ecosystem | Signing mode in demo |
-| --- | --- |
-| EVM | `personal_sign`, `eip712` |
-| Solana | `solana_message` |
-| BTC | `btc_message` / `btc_psbt` representation |
-| Sei | `sei_arbitrary` |
-| TON | Not implemented |
+| Ecosystem | Signing mode in demo                      |
+| --------- | ----------------------------------------- |
+| EVM       | `personal_sign`, `eip712`                 |
+| Solana    | `solana_message`                          |
+| BTC       | `btc_message` / `btc_psbt` representation |
+| Sei       | `sei_arbitrary`                           |
+| TON       | Not implemented                           |
 
 ### 10.4 Typed data
 
@@ -479,7 +479,7 @@ For non-EVM:
 
 ### 11.3 Why this is EVM-specific
 
-EVM wallets commonly expose programmatic `switchChain`.  
+EVM wallets commonly expose programmatic `switchChain`.
 Solana/BTC/Sei in this codebase report wallet-managed network contexts, not unified switch API.
 
 ---
@@ -506,7 +506,7 @@ Hook flow:
 
 ### 12.3 Current integration status
 
-`useBindWallet` is currently **not mounted by any UI component**.  
+`useBindWallet` is currently **not mounted by any UI component**.
 So bind flow exists in code, but no visible button/panel triggers it in the current screen.
 
 ### 12.4 Example payloads (from current code)
@@ -550,7 +550,7 @@ Bind response:
 
 ### 12.5 Type mismatch note
 
-In `binding-service.ts`, `NonceResponse` currently expects `ok`, and `BindResponse.binding` expects fields like `mode`/`verifier`.  
+In `binding-service.ts`, `NonceResponse` currently expects `ok`, and `BindResponse.binding` expects fields like `mode`/`verifier`.
 The route response shapes differ (`nonce` route has no `ok`; bind route returns `verificationMode`).
 
 This does not break UI today because bind flow is not wired into panel rendering, but it should be aligned before production use.
@@ -559,7 +559,7 @@ This does not break UI today because bind flow is not wired into panel rendering
 
 ## 13. Multi-Chain Difference Explanation in UI
 
-There is no dedicated “difference explanation page” route yet.  
+There is no dedicated “difference explanation page” route yet.
 Instead, explanation content currently lives in:
 
 - `src/components/wallet/multichain-overview.tsx`
@@ -731,51 +731,51 @@ store binding status updated
 
 ## 17. Key Implementation Decisions
 
-1. Adapter-first architecture  
+1. Adapter-first architecture
    UI does not directly call wallet SDKs. It calls a unified adapter surface.
 
-2. Capability-based UI  
+2. Capability-based UI
    Buttons are gated by `WalletCapability`, not by raw ecosystem string checks alone.
 
-3. Store separation of concerns  
+3. Store separation of concerns
    Connection state, binding state, logs, and debug payloads are modeled separately.
 
-4. EVM switch chain treated as ecosystem-specific  
+4. EVM switch chain treated as ecosystem-specific
    No assumption that Solana/BTC/Sei can use the same `switchChain` model.
 
-5. Mock backend for binding  
+5. Mock backend for binding
    Demonstrates product-level account linking flow without external infrastructure.
 
 ---
 
 ## 18. Common Mistakes and Debugging Notes
 
-1. Missing wallet extension  
+1. Missing wallet extension
    Check error messages from `use-wallet-account.ts` resolution logic.
 
-2. WalletConnect not configured  
+2. WalletConnect not configured
    Set `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` before choosing WalletConnect.
 
-3. Wrong EVM network  
+3. Wrong EVM network
    Network panel will show `switchRequired`; use switch button if available.
 
-4. Solana signMessage unavailable  
+4. Solana signMessage unavailable
    Some wallet/provider paths may not expose signing capability.
 
-5. TON expectations mismatch  
+5. TON expectations mismatch
    TON is placeholder-only in current code.
 
-6. Locale route confusion  
+6. Locale route confusion
    `ja` exists in i18n config/messages, but middleware matcher currently does not include it.
 
-7. Client/server boundary mistakes  
-   Wallet hooks/components are client-side (`"use client"`).  
+7. Client/server boundary mistakes
+   Wallet hooks/components are client-side (`"use client"`).
    API routes and nonce/bind verification logic are server-side.
 
-8. Address semantics confusion  
+8. Address semantics confusion
    Never assume EVM hex address semantics for Solana/BTC/Sei strings.
 
-9. Binding response type mismatch  
+9. Binding response type mismatch
    Align `binding-service.ts` types with route outputs before wiring UI.
 
 ---
@@ -823,25 +823,7 @@ store binding status updated
 
 ---
 
-## 20. Interview Explanation Guide
-
-### 20.1 One-minute version
-
-“This demo is not a simple wallet-connect page. I built it around a `WalletAdapter` abstraction that normalizes connection, network status, signing, and transaction behavior across ecosystems. EVM supports chain switching and typed-data signing, while Solana, BTC, and Sei use different wallet and signing models. The UI consumes normalized state from a central store, but chain-specific capabilities are preserved through capability flags. I also added a mock wallet-binding flow to model real product account-linking requirements. TON is reserved as a planned extension point, intentionally not faked.”
-
-### 20.2 Three-minute version
-
-“The architecture starts with provider composition: Next Intl, wagmi, Solana providers, and React Query.  
-Then each ecosystem is wrapped by an adapter that implements the same interface: connect, disconnect, account fetch, network status, sign intent, and optional transaction send.  
-The wallet control hook orchestrates adapter calls and writes normalized session state to a Zustand store. UI panels never talk directly to wallet SDK internals; they call hooks and render capability-driven controls.  
-For EVM, I support extension-aware connector selection, network mismatch detection, and programmatic chain switch. For Solana, I support wallet-adapter plus injected-provider fallback paths, and treat network context as wallet/provider-managed.  
-The signing lab demonstrates that signing semantics differ by ecosystem: `personal_sign`/EIP-712 on EVM vs message signing on Solana/BTC/Sei.  
-I also implemented mock nonce+bind API routes and a bind hook to demonstrate account linking patterns, while keeping it backend-agnostic.  
-The key engineering point is: unified frontend state does not mean unified protocol behavior. The abstraction hides plumbing complexity but still surfaces capability differences explicitly.”
-
----
-
-## 21. Summary
+## 20. Summary
 
 This project teaches practical multichain frontend architecture:
 
@@ -854,4 +836,3 @@ This project teaches practical multichain frontend architecture:
 If you extend this codebase, preserve this principle:
 
 > Unify UX and state shape where possible, but never erase protocol-level differences.
-
