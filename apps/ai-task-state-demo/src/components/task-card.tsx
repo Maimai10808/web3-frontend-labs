@@ -1,6 +1,6 @@
-/* eslint-disable @next/next/no-img-element */
 "use client";
 
+import Image from "next/image";
 import type { Task } from "@/types/task";
 import { TaskActions, type PendingTaskAction } from "./task-actions";
 import { TaskProgress } from "./task-progress";
@@ -52,11 +52,14 @@ export function TaskCard({
             <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">
               Source Image
             </p>
-            <div className="overflow-hidden rounded-lg border border-zinc-200 bg-zinc-100">
-              <img
+            <div className="h-40 overflow-hidden rounded-lg border border-zinc-200 bg-zinc-100">
+              <Image
                 src={task.sourceImage.previewUrl}
                 alt={task.sourceImage.name}
-                className="h-40 w-full object-cover"
+                width={720}
+                height={720}
+                unoptimized
+                className="h-full w-full object-cover"
               />
             </div>
           </div>
@@ -81,11 +84,14 @@ export function TaskCard({
             <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">
               Result Preview
             </p>
-            <div className="overflow-hidden rounded-lg border border-zinc-200 bg-zinc-100">
-              <img
+            <div className="h-40 overflow-hidden rounded-lg border border-zinc-200 bg-zinc-100">
+              <Image
                 src={task.resultImageUrl}
                 alt={`Result of ${task.id}`}
-                className="h-40 w-full object-cover"
+                width={720}
+                height={720}
+                unoptimized
+                className="h-full w-full object-cover"
               />
             </div>
           </div>

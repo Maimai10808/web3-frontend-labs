@@ -1,6 +1,6 @@
-/* eslint-disable @next/next/no-img-element */
 "use client";
 
+import Image from "next/image";
 import { useState, type ChangeEvent, type FormEvent } from "react";
 import { taskApiClient } from "@/lib/api-client";
 import { ACCEPTED_UPLOAD_TYPES } from "@/lib/validators";
@@ -116,11 +116,14 @@ export function ImageUploadForm({
       </div>
 
       {previewUrl ? (
-        <div className="overflow-hidden rounded-lg border border-zinc-200 bg-zinc-100">
-          <img
+        <div className="h-48 overflow-hidden rounded-lg border border-zinc-200 bg-zinc-100">
+          <Image
             src={previewUrl}
             alt="Source preview"
-            className="h-48 w-full object-cover"
+            width={720}
+            height={720}
+            unoptimized
+            className="h-full w-full object-cover"
           />
         </div>
       ) : null}

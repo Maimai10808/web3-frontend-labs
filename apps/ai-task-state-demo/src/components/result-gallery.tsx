@@ -1,6 +1,6 @@
-/* eslint-disable @next/next/no-img-element */
 "use client";
 
+import Image from "next/image";
 import type { Task } from "@/types/task";
 import { EmptyState } from "./empty-state";
 
@@ -10,7 +10,13 @@ type ResultGalleryProps = {
 
 export function ResultGallery({ tasks }: ResultGalleryProps) {
   const succeededTasks = tasks.filter(
-    (task) => task.status === "succeeded" && Boolean(task.resultImageUrl),
+    (task): task is Task & { resultImageUrl: string } => {
+      return (
+        task.status === "succeeded" &&
+        typeof task.resultImageUrl === "string" &&
+        task.resultImageUrl.length > 0
+      );
+    },
   );
 
   return (
@@ -38,9 +44,12 @@ export function ResultGallery({ tasks }: ResultGalleryProps) {
               className="overflow-hidden rounded-lg border border-zinc-200 bg-zinc-50"
             >
               <div className="aspect-square overflow-hidden bg-zinc-100">
-                <img
+                <Image
                   src={task.resultImageUrl}
                   alt={`Result of ${task.id}`}
+                  width={720}
+                  height={720}
+                  unoptimized
                   className="h-full w-full object-cover"
                 />
               </div>
