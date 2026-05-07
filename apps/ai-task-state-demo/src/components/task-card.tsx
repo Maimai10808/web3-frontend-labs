@@ -42,27 +42,17 @@ export function TaskCard({
           <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">
             Prompt
           </p>
-          <p className="mt-1 whitespace-pre-wrap wrap-break-word text-sm text-zinc-800">
+          <p className="mt-1 whitespace-pre-wrap break-words text-sm text-zinc-800">
             {task.prompt}
           </p>
         </div>
 
         {task.type === "image-to-image" ? (
-          <div className="space-y-1">
-            <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">
-              Source Image
-            </p>
-            <div className="h-40 overflow-hidden rounded-lg border border-zinc-200 bg-zinc-100">
-              <Image
-                src={task.sourceImage.previewUrl}
-                alt={task.sourceImage.name}
-                width={720}
-                height={720}
-                unoptimized
-                className="h-full w-full object-cover"
-              />
-            </div>
-          </div>
+          <TaskImagePreview
+            label="Source Image"
+            src={task.sourceImage.previewUrl}
+            alt={task.sourceImage.name}
+          />
         ) : null}
 
         <TaskProgress progress={task.progress} status={task.status} />
@@ -80,21 +70,11 @@ export function TaskCard({
         ) : null}
 
         {task.status === "succeeded" && task.resultImageUrl ? (
-          <div className="space-y-1">
-            <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">
-              Result Preview
-            </p>
-            <div className="h-40 overflow-hidden rounded-lg border border-zinc-200 bg-zinc-100">
-              <Image
-                src={task.resultImageUrl}
-                alt={`Result of ${task.id}`}
-                width={720}
-                height={720}
-                unoptimized
-                className="h-full w-full object-cover"
-              />
-            </div>
-          </div>
+          <TaskImagePreview
+            label="Result Preview"
+            src={task.resultImageUrl}
+            alt={`Result of ${task.id}`}
+          />
         ) : null}
 
         <TaskActions
@@ -107,6 +87,33 @@ export function TaskCard({
         />
       </div>
     </article>
+  );
+}
+
+type TaskImagePreviewProps = {
+  label: string;
+  src: string;
+  alt: string;
+};
+
+function TaskImagePreview({ label, src, alt }: TaskImagePreviewProps) {
+  return (
+    <div className="space-y-1">
+      <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">
+        {label}
+      </p>
+
+      <div className="relative aspect-square w-full max-w-64 overflow-hidden rounded-lg border border-zinc-200 bg-zinc-100">
+        <Image
+          src={src}
+          alt={alt}
+          fill
+          unoptimized
+          sizes="256px"
+          className="object-contain"
+        />
+      </div>
+    </div>
   );
 }
 
