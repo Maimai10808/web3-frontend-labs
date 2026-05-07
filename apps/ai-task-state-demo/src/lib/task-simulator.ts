@@ -1,3 +1,4 @@
+import { generateImageWithCloudflare } from "@/lib/cloudflare-image-generator";
 import { taskStore } from "@/lib/task-store";
 import type { Task } from "@/types/task";
 import { isTerminalTask } from "@/types/task";
@@ -69,6 +70,58 @@ function shouldForceFailure(task: Task) {
   return task.prompt.toLowerCase().includes("fail");
 }
 
+async function completeTaskWithGeneratedImage(taskId: string) {
+  try {
+    const current = taskStore.getTask(taskId);
+
+    if (!current || current.status !== "processing") {
+      return;
+    }
+
+    const resultImageUrl = await generateImageWithCloudflare({
+      prompt: current.prompt,
+      taskType: current.type,
+      sourceImageUrl:
+        current.type === "image-to-image"
+          ? current.sourceImage.previewUrl
+          : undefined,
+      sourceImageName:
+        current.type === "image-to-image" ? current.sourceImage.name : undefined,
+    });
+
+    const latest = taskStore.getTask(taskId);
+
+    if (!latest || latest.status !== "processing") {
+      return;
+    }
+
+    taskStore.updateTask(taskId, (task) => ({
+      ...task,
+      status: "succeeded",
+      progress: 100,
+      resultImageUrl,
+      errorMessage: undefined,
+    }));
+  } catch {
+    const latest = taskStore.getTask(taskId);
+
+    if (!latest || latest.status !== "processing") {
+      return;
+    }
+
+    // Cloudflare is optional in this demo; keep deterministic fallback image.
+    taskStore.updateTask(taskId, (task) => ({
+      ...task,
+      status: "succeeded",
+      progress: 100,
+      resultImageUrl: buildMockResultImageUrl(task),
+      errorMessage: undefined,
+    }));
+  } finally {
+    clearSimulation(taskId);
+  }
+}
+
 export function startTaskSimulation(taskId: string) {
   clearSimulation(taskId);
 
@@ -111,6 +164,8 @@ export function startTaskSimulation(taskId: string) {
         return;
       }
 
+      clearInterval(progressTimer);
+
       if (shouldForceFailure(current)) {
         taskStore.updateTask(taskId, (task) => ({
           ...task,
@@ -119,17 +174,18 @@ export function startTaskSimulation(taskId: string) {
           errorMessage:
             "Mock task failed because the prompt contains the word fail.",
         }));
-      } else {
-        taskStore.updateTask(taskId, (task) => ({
-          ...task,
-          status: "succeeded",
-          progress: 100,
-          resultImageUrl: buildMockResultImageUrl(task),
-          errorMessage: undefined,
-        }));
+
+        clearSimulation(taskId);
+        return;
       }
 
-      clearSimulation(taskId);
+      taskStore.updateTask(taskId, (task) => ({
+        ...task,
+        progress: Math.max(task.progress, 95),
+        errorMessage: undefined,
+      }));
+
+      void completeTaskWithGeneratedImage(taskId);
     }, 1200);
 
     simulations.set(taskId, {

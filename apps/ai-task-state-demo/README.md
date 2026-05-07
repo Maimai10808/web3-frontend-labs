@@ -20,6 +20,20 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Cloudflare AI Configuration
+
+Set the following environment variables to enable real image generation:
+
+```bash
+CLOUDFLARE_API_TOKEN=...
+CLOUDFLARE_ACCOUNT_ID=...
+CLOUDFLARE_AI_IMAGE_MODEL=@cf/black-forest-labs/flux-1-schnell
+```
+
+- `CLOUDFLARE_AI_IMAGE_MODEL` is optional; it defaults to `@cf/black-forest-labs/flux-1-schnell`.
+- If Cloudflare variables are missing (or Cloudflare generation fails), the demo falls back to mock SVG result images.
+- Task lifecycle behavior (queued/processing/succeeded/failed, retry, cancel, SSE updates) still works without Cloudflare credentials.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
