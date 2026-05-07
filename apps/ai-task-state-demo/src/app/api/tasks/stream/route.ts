@@ -5,44 +5,72 @@ function encodeSseMessage(event: string, data: unknown) {
 }
 
 export async function GET() {
+  let cleanupStream = () => {};
+
   const stream = new ReadableStream({
     start(controller) {
       const encoder = new TextEncoder();
+      let closed = false;
+      let heartbeat: ReturnType<typeof setInterval> | null = null;
+      let unsubscribe: (() => void) | null = null;
 
-      controller.enqueue(
-        encoder.encode(
-          encodeSseMessage("ready", {
-            connectedAt: new Date().toISOString(),
-          }),
-        ),
-      );
+      const cleanup = () => {
+        if (closed) {
+          return;
+        }
 
-      const unsubscribe = taskEventBus.subscribe((event) => {
-        controller.enqueue(encoder.encode(encodeSseMessage("task", event)));
-      });
+        closed = true;
 
-      const heartbeat = setInterval(() => {
-        controller.enqueue(
-          encoder.encode(
-            encodeSseMessage("heartbeat", {
-              timestamp: new Date().toISOString(),
-            }),
-          ),
-        );
-      }, 15_000);
+        if (heartbeat) {
+          clearInterval(heartbeat);
+          heartbeat = null;
+        }
 
-      const close = () => {
-        clearInterval(heartbeat);
-        unsubscribe();
-        controller.close();
+        if (unsubscribe) {
+          unsubscribe();
+          unsubscribe = null;
+        }
+
+        try {
+          controller.close();
+        } catch {
+          // stream may already be closed by runtime
+        }
       };
 
-      // @ts-expect-error Next/edge stream close callback pattern
-      controller._close = close;
+      const safeEnqueue = (event: string, data: unknown) => {
+        if (closed) {
+          return false;
+        }
+
+        try {
+          controller.enqueue(encoder.encode(encodeSseMessage(event, data)));
+          return true;
+        } catch {
+          cleanup();
+          return false;
+        }
+      };
+
+      cleanupStream = cleanup;
+
+      safeEnqueue("ready", {
+        connectedAt: new Date().toISOString(),
+      });
+
+      unsubscribe = taskEventBus.subscribe((event) => {
+        safeEnqueue("task", event);
+      });
+
+      heartbeat = setInterval(() => {
+        safeEnqueue("heartbeat", {
+          timestamp: new Date().toISOString(),
+        });
+      }, 15_000);
     },
 
     cancel() {
-      // no-op, cleanup is handled by runtime closing the stream
+      cleanupStream();
     },
   });
 
