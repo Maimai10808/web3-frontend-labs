@@ -42,7 +42,7 @@ export function TaskCard({
           <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">
             Prompt
           </p>
-          <p className="mt-1 whitespace-pre-wrap break-words text-sm text-zinc-800">
+          <p className="mt-1 whitespace-pre-wrap wrap-break-word text-sm text-zinc-800">
             {task.prompt}
           </p>
         </div>
