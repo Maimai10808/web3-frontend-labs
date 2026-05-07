@@ -6,7 +6,7 @@ import type { TaskType } from "@/types/task";
 
 const DEFAULT_CLOUDFLARE_AI_IMAGE_MODEL =
   "@cf/black-forest-labs/flux-1-schnell";
-const DEFAULT_IMAGE_MIME_TYPE = "image/jpeg";
+const DEFAULT_IMAGE_MIME_TYPE = "image/png";
 
 type GenerateImageInput = {
   prompt: string;
@@ -34,11 +34,19 @@ function isLikelyBase64(value: string) {
     return false;
   }
 
-  return /^[A-Za-z0-9+/]+={0,2}$/.test(normalized);
+  return /^[A-Za-z0-9+/_-]+={0,2}$/.test(normalized);
 }
 
 function normalizeBase64(value: string) {
-  return value.trim().replace(/\s+/g, "");
+  const compact = value.trim().replace(/\s+/g, "");
+  const standard = compact.replace(/-/g, "+").replace(/_/g, "/");
+  const remainder = standard.length % 4;
+
+  if (remainder === 0) {
+    return standard;
+  }
+
+  return `${standard}${"=".repeat(4 - remainder)}`;
 }
 
 function toDataUrlFromBase64(
@@ -135,6 +143,42 @@ async function normalizeCloudflareImageResult(result: unknown): Promise<string> 
   }
 
   if (isPlainObject(result)) {
+    if ("success" in result || "errors" in result) {
+      const success =
+        typeof result.success === "boolean" ? result.success : undefined;
+      const errors = Array.isArray(result.errors) ? result.errors : [];
+
+      if (success === false || errors.length > 0) {
+        const details = errors
+          .map((error) => {
+            if (typeof error === "string") {
+              return error;
+            }
+
+            if (isPlainObject(error)) {
+              if (typeof error.message === "string") {
+                return error.message;
+              }
+
+              if (typeof error.code === "string") {
+                return error.code;
+              }
+            }
+
+            return "unknown error";
+          })
+          .join("; ");
+
+        throw new Error(
+          `Cloudflare image generation failed.${details ? ` ${details}` : ""}`,
+        );
+      }
+    }
+
+    if ("result" in result && result.result !== undefined) {
+      return normalizeCloudflareImageResult(result.result);
+    }
+
     if (typeof result.image === "string") {
       return normalizeStringImageOutput(result.image);
     }
@@ -151,9 +195,6 @@ async function normalizeCloudflareImageResult(result: unknown): Promise<string> 
       return normalizeStringImageOutput(result.url);
     }
 
-    if ("result" in result) {
-      return normalizeCloudflareImageResult(result.result);
-    }
   }
 
   const uploadableImage = await normalizeUploadableImageOutput(result);
@@ -204,5 +245,17 @@ export async function generateImageWithCloudflare(
   }
 
   const result = await client.ai.run(model, requestBody);
-  return normalizeCloudflareImageResult(result);
+
+  try {
+    return await normalizeCloudflareImageResult(result);
+  } catch (error) {
+    console.error("[cloudflare-image-generator] Failed to parse AI response", {
+      model,
+      responseType: typeof result,
+      responseKeys: isPlainObject(result) ? Object.keys(result) : undefined,
+      errorMessage: error instanceof Error ? error.message : "unknown error",
+    });
+
+    throw error;
+  }
 }
