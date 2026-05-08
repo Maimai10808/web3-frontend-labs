@@ -7,7 +7,9 @@
     ".": "./src/index.ts",
     "./token-launch-demo": "./src/token-launch-demo/index.ts",
     "./airdrop-growth-demo": "./src/airdrop-growth-demo/index.ts",
-    "./siwe-eip712-demo": "./src/siwe-eip712-demo/index.ts"
+    "./siwe-eip712-demo": "./src/siwe-eip712-demo/index.ts",
+    "./trading-demo": "./src/trading-demo/index.ts",
+    "./nft-demo": "./src/nft-demo/index.ts"
   },
   "devDependencies": {
     "typescript": "^5.9.3"

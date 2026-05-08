@@ -1,0 +1,24 @@
+{
+  "deploymentId": "local-31337-1778226082350",
+  "chainId": 31337,
+  "networkName": "local",
+  "deployScripts": [
+    "DeployTradeFlowDemo.s.sol",
+    "DeployTradingStateDemo.s.sol"
+  ],
+  "exportedAt": "2026-05-08T07:41:22.350Z",
+  "contracts": {
+    "mockToken": {
+      "contractName": "MockToken",
+      "address": "0x959922be3caee4b8cd9a407cc3ac1c251c2007b1",
+      "transactionHash": "0x221cd11647099e3b17c981fc9b215ca4bd482a760fb0dd518b884797b51febd0",
+      "deployScript": "DeployTradeFlowDemo.s.sol"
+    },
+    "tradeOrderBook": {
+      "contractName": "TradeOrderBook",
+      "address": "0x9a9f2ccfde556a7e9ff0848998aa4a0cfd8863ae",
+      "transactionHash": "0x09ed471204af96fabef0e28190155ec738505094750369896e93e073d04907c7",
+      "deployScript": "DeployTradingStateDemo.s.sol"
+    }
+  }
+}

@@ -33,7 +33,14 @@
     "deploy:airdrop-growth": "npm run contracts:build && npm run contracts:deploy:airdrop-growth:raw && npm run contracts:sync:airdrop-growth",
     "contracts:deploy:siwe-eip712:raw": "cd contracts/foundry && source .env && forge script script/DeploySiweEip712Demo.s.sol:DeploySiweEip712Demo --rpc-url \"$LOCAL_RPC_URL\" --private-key \"$PRIVATE_KEY\" --broadcast",
     "contracts:sync:siwe-eip712": "node scripts/sync-siwe-eip712-contracts.mjs",
-    "deploy:siwe-eip712": "npm run contracts:build && npm run contracts:deploy:siwe-eip712:raw && npm run contracts:sync:siwe-eip712"
+    "deploy:siwe-eip712": "npm run contracts:build && npm run contracts:deploy:siwe-eip712:raw && npm run contracts:sync:siwe-eip712",
+    "contracts:deploy:trade-flow:raw": "cd contracts/foundry && source .env && forge script script/DeployTradeFlowDemo.s.sol:DeployTradeFlowDemo --rpc-url \"$LOCAL_RPC_URL\" --private-key \"$PRIVATE_KEY\" --broadcast",
+    "contracts:deploy:trading-state:raw": "cd contracts/foundry && source .env && forge script script/DeployTradingStateDemo.s.sol:DeployTradingStateDemo --rpc-url \"$LOCAL_RPC_URL\" --private-key \"$PRIVATE_KEY\" --broadcast",
+    "contracts:sync:trading-demo": "node scripts/sync-trading-demo-contracts.mjs",
+    "deploy:trading-demo": "npm run contracts:build && npm run contracts:deploy:trade-flow:raw && npm run contracts:deploy:trading-state:raw && npm run contracts:sync:trading-demo",
+    "contracts:deploy:nft-demo:raw": "cd contracts/foundry && source .env && forge script script/DeployNftDemo.s.sol:DeployNftDemo --rpc-url \"$LOCAL_RPC_URL\" --private-key \"$PRIVATE_KEY\" --broadcast",
+    "contracts:sync:nft-demo": "node scripts/sync-nft-demo-contracts.mjs",
+    "deploy:nft-demo": "npm run contracts:build && npm run contracts:deploy:nft-demo:raw && npm run contracts:sync:nft-demo"
   },
   "keywords": [
     "web3",
