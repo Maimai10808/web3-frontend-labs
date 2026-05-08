@@ -142,6 +142,18 @@ Deploy siwe eip712 contracts:
 npm run deploy:siwe-eip712
 ```
 
+Deploy trading demo contracts:
+
+```bash
+npm run deploy:trading-demo
+```
+
+Deploy nft demo contracts:
+
+```bash
+npm run deploy:nft-demo
+```
+
 Most deploy commands follow this flow: build contracts -> deploy with Foundry -> sync addresses and ABIs to frontend apps.
 
 ## Environment Variables
