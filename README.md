@@ -136,6 +136,12 @@ Deploy airdrop growth contracts:
 npm run deploy:airdrop-growth
 ```
 
+Deploy siwe eip712 contracts:
+
+```bash
+npm run deploy:siwe-eip712
+```
+
 Most deploy commands follow this flow: build contracts -> deploy with Foundry -> sync addresses and ABIs to frontend apps.
 
 ## Environment Variables
