@@ -30,7 +30,10 @@
     "deploy:nft-collection-factory": "npm run contracts:build && npm run contracts:deploy:nft-collection-factory:raw && npm run contracts:sync:nft-collection-factory",
     "contracts:deploy:airdrop-growth:raw": "cd contracts/foundry && source .env && forge script script/DeployAirdropGrowth.s.sol --rpc-url \"$LOCAL_RPC_URL\" --private-key \"$PRIVATE_KEY\" --broadcast",
     "contracts:sync:airdrop-growth": "node scripts/sync-airdrop-growth-contracts.mjs",
-    "deploy:airdrop-growth": "npm run contracts:build && npm run contracts:deploy:airdrop-growth:raw && npm run contracts:sync:airdrop-growth"
+    "deploy:airdrop-growth": "npm run contracts:build && npm run contracts:deploy:airdrop-growth:raw && npm run contracts:sync:airdrop-growth",
+    "contracts:deploy:siwe-eip712:raw": "cd contracts/foundry && source .env && forge script script/DeploySiweEip712Demo.s.sol:DeploySiweEip712Demo --rpc-url \"$LOCAL_RPC_URL\" --private-key \"$PRIVATE_KEY\" --broadcast",
+    "contracts:sync:siwe-eip712": "node scripts/sync-siwe-eip712-contracts.mjs",
+    "deploy:siwe-eip712": "npm run contracts:build && npm run contracts:deploy:siwe-eip712:raw && npm run contracts:sync:siwe-eip712"
   },
   "keywords": [
     "web3",
