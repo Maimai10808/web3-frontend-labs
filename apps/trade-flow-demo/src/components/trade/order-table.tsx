@@ -106,10 +106,26 @@ export function OrderTable({ account }: OrderTableProps) {
 
       <CardContent className="space-y-4 pt-5">
         <div className="grid gap-3 sm:grid-cols-4">
-          <SummaryCard icon={<Activity className="size-4" />} label="Total" value={summary.total} />
-          <SummaryCard icon={<Clock3 className="size-4" />} label="Active" value={summary.active} />
-          <SummaryCard icon={<CheckCircle2 className="size-4" />} label="Filled" value={summary.filled} />
-          <SummaryCard icon={<ShieldAlert className="size-4" />} label="Terminal" value={summary.terminal} />
+          <SummaryCard
+            icon={<Activity className="size-4" />}
+            label="Total"
+            value={summary.total}
+          />
+          <SummaryCard
+            icon={<Clock3 className="size-4" />}
+            label="Active"
+            value={summary.active}
+          />
+          <SummaryCard
+            icon={<CheckCircle2 className="size-4" />}
+            label="Filled"
+            value={summary.filled}
+          />
+          <SummaryCard
+            icon={<ShieldAlert className="size-4" />}
+            label="Terminal"
+            value={summary.terminal}
+          />
         </div>
 
         {ordersQuery.isError ? (
@@ -121,19 +137,21 @@ export function OrderTable({ account }: OrderTableProps) {
         ) : null}
 
         {ordersQuery.isLoading ? (
-          <div className="flex min-h-[320px] items-center justify-center rounded-lg border bg-muted/50 p-6">
+          <div className="flex min-h-80 items-center justify-center rounded-lg border bg-muted/50 p-6">
             <div className="flex items-center gap-3 text-sm text-muted-foreground">
               <LoaderCircle className="size-4 animate-spin" />
               Loading orders...
             </div>
           </div>
         ) : orders.length === 0 ? (
-          <div className="flex min-h-[300px] items-center justify-center rounded-lg border bg-muted/50 p-6 text-center">
+          <div className="flex min-h-75 items-center justify-center rounded-lg border bg-muted/50 p-6 text-center">
             <div className="space-y-2">
               <div className="mx-auto inline-flex rounded-md bg-background p-3 text-muted-foreground">
                 <TableProperties className="size-5" />
               </div>
-              <div className="text-sm font-medium text-foreground">No orders yet</div>
+              <div className="text-sm font-medium text-foreground">
+                No orders yet
+              </div>
               <p className="max-w-xs text-xs leading-5 text-muted-foreground">
                 Signed orders will appear here after submission.
               </p>
@@ -141,7 +159,7 @@ export function OrderTable({ account }: OrderTableProps) {
           </div>
         ) : (
           <div className="overflow-hidden rounded-lg border">
-            <div className="h-[420px] overflow-auto">
+            <div className="h-105 overflow-auto">
               <table className="min-w-full border-collapse text-left text-sm">
                 <thead className="sticky top-0 bg-muted/50 text-xs uppercase tracking-[0.14em] text-muted-foreground">
                   <tr>
@@ -161,7 +179,7 @@ export function OrderTable({ account }: OrderTableProps) {
                       className="border-t transition-colors hover:bg-muted/40"
                     >
                       <td className="px-4 py-4">
-                        <div className="max-w-[160px] truncate text-sm font-medium text-foreground">
+                        <div className="max-w-40 truncate text-sm font-medium text-foreground">
                           {truncateValue(order.orderId)}
                         </div>
                         <div className="mt-1 text-xs text-muted-foreground">
@@ -183,7 +201,7 @@ export function OrderTable({ account }: OrderTableProps) {
                         <StatusBadge status={order.status} />
                       </td>
                       <td className="px-4 py-4">
-                        <div className="max-w-[160px] truncate text-xs text-muted-foreground">
+                        <div className="max-w-40 truncate text-xs text-muted-foreground">
                           {order.txHash ? truncateValue(order.txHash) : "-"}
                         </div>
                       </td>

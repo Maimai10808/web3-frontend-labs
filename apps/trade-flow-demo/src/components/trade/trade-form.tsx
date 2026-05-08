@@ -4,13 +4,7 @@ import { useMemo } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useWatch } from "react-hook-form";
 import { useAccount, useChainId } from "wagmi";
-import {
-  Clock3,
-  DollarSign,
-  Gauge,
-  Layers3,
-  Wallet,
-} from "lucide-react";
+import { Clock3, DollarSign, Gauge, Layers3, Wallet } from "lucide-react";
 
 import { Button } from "@web3-frontend-labs/ui";
 import {
@@ -210,40 +204,43 @@ export function TradeForm({ account, onSubmitted }: TradeFormProps) {
 
           <FieldGroup className="gap-6">
             <Field>
-              <FieldLabel htmlFor="side" className="text-sm font-semibold text-foreground">
+              <FieldLabel
+                htmlFor="side"
+                className="text-sm font-semibold text-foreground"
+              >
                 Side
               </FieldLabel>
 
               <div className="grid grid-cols-2 gap-3">
-                  <Button
-                    type="button"
-                    size="lg"
-                    className="w-full"
-                    variant={watchedSide === "buy" ? "default" : "outline"}
-                    onClick={() =>
-                      form.setValue("side", "buy", {
-                        shouldDirty: true,
-                        shouldValidate: true,
-                      })
-                    }
-                  >
-                    Buy
-                  </Button>
+                <Button
+                  type="button"
+                  size="lg"
+                  className="w-full"
+                  variant={watchedSide === "buy" ? "default" : "outline"}
+                  onClick={() =>
+                    form.setValue("side", "buy", {
+                      shouldDirty: true,
+                      shouldValidate: true,
+                    })
+                  }
+                >
+                  Buy
+                </Button>
 
-                  <Button
-                    type="button"
-                    size="lg"
-                    className="w-full"
-                    variant={watchedSide === "sell" ? "default" : "outline"}
-                    onClick={() =>
-                      form.setValue("side", "sell", {
-                        shouldDirty: true,
-                        shouldValidate: true,
-                      })
-                    }
-                  >
-                    Sell
-                  </Button>
+                <Button
+                  type="button"
+                  size="lg"
+                  className="w-full"
+                  variant={watchedSide === "sell" ? "default" : "outline"}
+                  onClick={() =>
+                    form.setValue("side", "sell", {
+                      shouldDirty: true,
+                      shouldValidate: true,
+                    })
+                  }
+                >
+                  Sell
+                </Button>
               </div>
 
               {form.formState.errors.side && (
@@ -253,8 +250,11 @@ export function TradeForm({ account, onSubmitted }: TradeFormProps) {
 
             <div className="grid gap-6 lg:grid-cols-2">
               <Field>
-                <FieldLabel htmlFor="market" className="text-sm font-semibold text-foreground">
-                Market
+                <FieldLabel
+                  htmlFor="market"
+                  className="text-sm font-semibold text-foreground"
+                >
+                  Market
                 </FieldLabel>
                 <Input
                   id="market"
@@ -264,13 +264,18 @@ export function TradeForm({ account, onSubmitted }: TradeFormProps) {
                   {...form.register("market")}
                 />
                 {form.formState.errors.market && (
-                  <FieldError>{form.formState.errors.market.message}</FieldError>
+                  <FieldError>
+                    {form.formState.errors.market.message}
+                  </FieldError>
                 )}
               </Field>
 
               <Field>
-                <FieldLabel htmlFor="amount" className="text-sm font-semibold text-foreground">
-                Amount
+                <FieldLabel
+                  htmlFor="amount"
+                  className="text-sm font-semibold text-foreground"
+                >
+                  Amount
                 </FieldLabel>
                 <InputGroup className="h-11">
                   <Input
@@ -285,15 +290,20 @@ export function TradeForm({ account, onSubmitted }: TradeFormProps) {
                   </InputGroupAddon>
                 </InputGroup>
                 {form.formState.errors.amount && (
-                  <FieldError>{form.formState.errors.amount.message}</FieldError>
+                  <FieldError>
+                    {form.formState.errors.amount.message}
+                  </FieldError>
                 )}
               </Field>
             </div>
 
             <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
               <Field>
-                <FieldLabel htmlFor="price" className="text-sm font-semibold text-foreground">
-                Limit Price
+                <FieldLabel
+                  htmlFor="price"
+                  className="text-sm font-semibold text-foreground"
+                >
+                  Limit Price
                 </FieldLabel>
                 <InputGroup className="h-11">
                   <InputGroupAddon>
@@ -313,31 +323,31 @@ export function TradeForm({ account, onSubmitted }: TradeFormProps) {
               </Field>
 
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-1">
-              <Field>
-                <FieldLabel
-                  htmlFor="slippageBps"
-                  className="text-sm font-semibold text-foreground"
-                >
-                  Slippage
-                </FieldLabel>
-                <InputGroup className="h-11">
-                  <Input
-                    id="slippageBps"
-                    className="h-11"
-                    inputMode="numeric"
-                    placeholder="50"
-                    {...form.register("slippageBps")}
-                  />
-                  <InputGroupAddon>
-                    <InputGroupText>bps</InputGroupText>
-                  </InputGroupAddon>
-                </InputGroup>
-                {form.formState.errors.slippageBps && (
-                  <FieldError>
-                    {form.formState.errors.slippageBps.message}
-                  </FieldError>
-                )}
-              </Field>
+                <Field>
+                  <FieldLabel
+                    htmlFor="slippageBps"
+                    className="text-sm font-semibold text-foreground"
+                  >
+                    Slippage
+                  </FieldLabel>
+                  <InputGroup className="h-11">
+                    <Input
+                      id="slippageBps"
+                      className="h-11"
+                      inputMode="numeric"
+                      placeholder="50"
+                      {...form.register("slippageBps")}
+                    />
+                    <InputGroupAddon>
+                      <InputGroupText>bps</InputGroupText>
+                    </InputGroupAddon>
+                  </InputGroup>
+                  {form.formState.errors.slippageBps && (
+                    <FieldError>
+                      {form.formState.errors.slippageBps.message}
+                    </FieldError>
+                  )}
+                </Field>
               </div>
             </div>
 
@@ -352,38 +362,42 @@ export function TradeForm({ account, onSubmitted }: TradeFormProps) {
                   />
                   <SummaryRow
                     label="Latest Tx"
-                    value={latestTxHash ? shortHex(latestTxHash) : "No tx submitted yet"}
+                    value={
+                      latestTxHash
+                        ? shortHex(latestTxHash)
+                        : "No tx submitted yet"
+                    }
                     title={latestTxHash ?? undefined}
                   />
                 </div>
               </div>
 
               <div>
-            <Field>
-                <FieldLabel
-                  htmlFor="deadlineSeconds"
-                  className="text-sm font-semibold text-foreground"
-                >
-                  Deadline
-                </FieldLabel>
-                <InputGroup className="h-11">
-                  <Input
-                    id="deadlineSeconds"
-                    className="h-11"
-                    inputMode="numeric"
-                    placeholder="60"
-                    {...form.register("deadlineSeconds")}
-                  />
-                  <InputGroupAddon>
-                    <InputGroupText>sec</InputGroupText>
-                  </InputGroupAddon>
-                </InputGroup>
-                {form.formState.errors.deadlineSeconds && (
-                  <FieldError>
-                    {form.formState.errors.deadlineSeconds.message}
-                  </FieldError>
-                )}
-              </Field>
+                <Field>
+                  <FieldLabel
+                    htmlFor="deadlineSeconds"
+                    className="text-sm font-semibold text-foreground"
+                  >
+                    Deadline
+                  </FieldLabel>
+                  <InputGroup className="h-11">
+                    <Input
+                      id="deadlineSeconds"
+                      className="h-11"
+                      inputMode="numeric"
+                      placeholder="60"
+                      {...form.register("deadlineSeconds")}
+                    />
+                    <InputGroupAddon>
+                      <InputGroupText>sec</InputGroupText>
+                    </InputGroupAddon>
+                  </InputGroup>
+                  {form.formState.errors.deadlineSeconds && (
+                    <FieldError>
+                      {form.formState.errors.deadlineSeconds.message}
+                    </FieldError>
+                  )}
+                </Field>
               </div>
             </div>
 
@@ -424,7 +438,7 @@ export function TradeForm({ account, onSubmitted }: TradeFormProps) {
           <Button
             type="submit"
             size="lg"
-            className="w-full px-6 sm:ml-auto sm:min-w-[220px]"
+            className="w-full px-6 sm:ml-auto sm:min-w-55"
             disabled={!isReady}
           >
             {submitTrade.isPending ? "Signing / Sending..." : "Sign & Submit"}
@@ -435,11 +449,7 @@ export function TradeForm({ account, onSubmitted }: TradeFormProps) {
   );
 }
 
-function SummaryRow(props: {
-  label: string;
-  value: string;
-  title?: string;
-}) {
+function SummaryRow(props: { label: string; value: string; title?: string }) {
   return (
     <div className="rounded-md bg-background px-3 py-2" title={props.title}>
       <div className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
