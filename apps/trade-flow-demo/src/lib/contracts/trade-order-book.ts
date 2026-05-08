@@ -1,10 +1,8 @@
 import {
   mockTokenAbi,
   mockTokenAddress,
-  mockTokenDeployment,
   tradeOrderBookAbi,
   tradeOrderBookAddress,
-  tradeOrderBookDeployment,
   tradingDemoDeploymentMeta,
 } from "@web3-frontend-labs/contracts/trading-demo";
 import { formatUnits, parseUnits, zeroAddress } from "viem";
