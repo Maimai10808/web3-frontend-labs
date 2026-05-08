@@ -6,7 +6,8 @@
   "exports": {
     ".": "./src/index.ts",
     "./token-launch-demo": "./src/token-launch-demo/index.ts",
-    "./airdrop-growth-demo": "./src/airdrop-growth-demo/index.ts"
+    "./airdrop-growth-demo": "./src/airdrop-growth-demo/index.ts",
+    "./siwe-eip712-demo": "./src/siwe-eip712-demo/index.ts"
   },
   "devDependencies": {
     "typescript": "^5.9.3"

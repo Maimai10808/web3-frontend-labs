@@ -5,8 +5,8 @@ import {
   tokenFaucetAddress,
   signedOrderBookAbi,
   signedOrderBookAddress,
-  deploymentMeta,
-} from "@/src/generated/contracts";
+  signedOrderDemoDeploymentMeta as deploymentMeta,
+} from "@web3-frontend-labs/contracts/siwe-eip712-demo";
 
 export const contracts = {
   demoERC20: {
