@@ -3,9 +3,13 @@
 import { useMemo } from "react";
 import { useAccount, useReadContract } from "wagmi";
 
-import { DemoNFTAbi, contractAddresses } from "@web3-frontend-labs/contracts";
+import {
+  demoNFTAbi,
+  demoNFTAddress,
+  nftDemoDeploymentMeta,
+} from "@web3-frontend-labs/contracts/nft-demo";
 
-const demoNftAddress = contractAddresses.DemoNFT;
+const demoNftAddress = demoNFTAddress;
 
 function shortenAddress(address?: string) {
   if (!address) return "-";
@@ -27,33 +31,33 @@ export function NftDemoCard() {
 
   const { data: name, isLoading: isNameLoading } = useReadContract({
     address: demoNftAddress,
-    abi: DemoNFTAbi,
+    abi: demoNFTAbi,
     functionName: "name",
   });
 
   const { data: symbol, isLoading: isSymbolLoading } = useReadContract({
     address: demoNftAddress,
-    abi: DemoNFTAbi,
+    abi: demoNFTAbi,
     functionName: "symbol",
   });
 
   const { data: nextTokenId, isLoading: isNextTokenIdLoading } =
     useReadContract({
       address: demoNftAddress,
-      abi: DemoNFTAbi,
+      abi: demoNFTAbi,
       functionName: "nextTokenId",
     });
 
   const { data: tokenZeroOwner, isLoading: isOwnerLoading } = useReadContract({
     address: demoNftAddress,
-    abi: DemoNFTAbi,
+    abi: demoNFTAbi,
     functionName: "ownerOf",
     args: [BigInt(0)],
   });
 
   const { data: tokenZeroUri, isLoading: isTokenUriLoading } = useReadContract({
     address: demoNftAddress,
-    abi: DemoNFTAbi,
+    abi: demoNFTAbi,
     functionName: "tokenURI",
     args: [BigInt(0)],
   });
@@ -61,7 +65,7 @@ export function NftDemoCard() {
   const { data: connectedWalletBalance, isLoading: isBalanceLoading } =
     useReadContract({
       address: demoNftAddress,
-      abi: DemoNFTAbi,
+      abi: demoNFTAbi,
       functionName: "balanceOf",
       args: address ? [address] : undefined,
       query: {
@@ -90,7 +94,7 @@ export function NftDemoCard() {
         </div>
 
         <div className="rounded-full border px-3 py-1 text-xs text-muted-foreground">
-          Local chain · 31337
+          Local chain · {nftDemoDeploymentMeta.chainId}
         </div>
       </div>
 

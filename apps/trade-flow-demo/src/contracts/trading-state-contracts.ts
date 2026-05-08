@@ -1,14 +1,14 @@
 import {
-  TradeOrderBookAbi,
-  contractAddresses,
-  localDeployments,
-} from "@web3-frontend-labs/contracts";
+  tradeOrderBookAbi,
+  tradeOrderBookAddress,
+  tradingDemoDeploymentMeta,
+} from "@web3-frontend-labs/contracts/trading-demo";
 
-export const tradingStateChainId = localDeployments.chainId;
+export const tradingStateChainId = tradingDemoDeploymentMeta.chainId;
 
 export const tradeOrderBookContract = {
-  address: contractAddresses.TradeOrderBook,
-  abi: TradeOrderBookAbi,
+  address: tradeOrderBookAddress,
+  abi: tradeOrderBookAbi,
   chainId: tradingStateChainId,
 } as const;
 

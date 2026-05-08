@@ -1,3 +1,3 @@
-import { localDeployments } from "@web3-frontend-labs/contracts";
+import { mockTokenAddress } from "@web3-frontend-labs/contracts/trading-demo";
 
-export const mockTokenAddress = localDeployments.contracts.MockToken.address;
+export { mockTokenAddress };

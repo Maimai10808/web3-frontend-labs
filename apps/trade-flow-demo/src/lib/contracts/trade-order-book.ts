@@ -1,9 +1,12 @@
 import {
-  MockTokenAbi,
-  TradeOrderBookAbi,
-  contractAddresses,
-  localDeployments,
-} from "@web3-frontend-labs/contracts";
+  mockTokenAbi,
+  mockTokenAddress,
+  mockTokenDeployment,
+  tradeOrderBookAbi,
+  tradeOrderBookAddress,
+  tradeOrderBookDeployment,
+  tradingDemoDeploymentMeta,
+} from "@web3-frontend-labs/contracts/trading-demo";
 import { formatUnits, parseUnits, zeroAddress } from "viem";
 
 import type {
@@ -16,19 +19,17 @@ import type {
   TradeSide,
 } from "@/lib/trade/types";
 
-export const tradingStateChainId = localDeployments.chainId;
-export const tradeOrderBookAddress = contractAddresses.TradeOrderBook;
-export const mockTokenAddress = contractAddresses.MockToken;
+export const tradingStateChainId = tradingDemoDeploymentMeta.chainId;
 
 export const tradeOrderBookContract = {
   address: tradeOrderBookAddress,
-  abi: TradeOrderBookAbi,
+  abi: tradeOrderBookAbi,
   chainId: tradingStateChainId,
 } as const;
 
 export const mockTokenContract = {
   address: mockTokenAddress,
-  abi: MockTokenAbi,
+  abi: mockTokenAbi,
   chainId: tradingStateChainId,
 } as const;
 
@@ -129,7 +130,9 @@ export function toTradeOrderMessage(params: {
   };
 }
 
-export function serializeChainTradeOrder(order: ChainTradeOrder): ContractOrder {
+export function serializeChainTradeOrder(
+  order: ChainTradeOrder,
+): ContractOrder {
   return {
     trader: order.trader,
     side: order.side === 0 ? "buy" : "sell",
@@ -215,7 +218,8 @@ export function createChainOrderEvent(params: {
   order: Order;
 }): OrderEvent {
   return {
-    type: params.eventName === "OrderSubmitted" ? "order.created" : "order.updated",
+    type:
+      params.eventName === "OrderSubmitted" ? "order.created" : "order.updated",
     order: params.order,
     createdAt: Date.now(),
   };
