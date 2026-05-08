@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { useAccount, useChainId } from "wagmi";
 import {
   Clock3,
@@ -15,7 +15,6 @@ import {
 import { Button } from "@web3-frontend-labs/ui";
 import {
   Card,
-  CardAction,
   CardContent,
   CardDescription,
   CardFooter,
@@ -71,7 +70,17 @@ export function TradeForm({ account, onSubmitted }: TradeFormProps) {
     mode: "onChange",
   });
 
-  const watchedSide = form.watch("side");
+  const watchedSide = useWatch({ control: form.control, name: "side" });
+  const watchedAmount = useWatch({ control: form.control, name: "amount" });
+  const watchedPrice = useWatch({ control: form.control, name: "price" });
+  const watchedSlippageBps = useWatch({
+    control: form.control,
+    name: "slippageBps",
+  });
+  const watchedDeadlineSeconds = useWatch({
+    control: form.control,
+    name: "deadlineSeconds",
+  });
 
   const isReady = useMemo(() => {
     return (
@@ -121,49 +130,49 @@ export function TradeForm({ account, onSubmitted }: TradeFormProps) {
   }
 
   const rootError = form.formState.errors.root?.message;
+  const latestTxHash = submitTrade.data?.txHash;
   const summary = {
-    notional:
-      Number(form.watch("amount") || 0) * Number(form.watch("price") || 0),
-    slippagePct: Number(form.watch("slippageBps") || 0) / 100,
-    deadlineLabel: `${form.watch("deadlineSeconds") || "0"}s`,
+    notional: Number(watchedAmount || 0) * Number(watchedPrice || 0),
+    slippagePct: Number(watchedSlippageBps || 0) / 100,
+    deadlineLabel: `${watchedDeadlineSeconds || "0"}s`,
   };
 
   return (
     <Card className="w-full overflow-hidden rounded-xl border bg-card shadow-sm">
       <CardHeader className="border-b pb-5">
-        <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-start">
-          <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 rounded-md bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">
-              <Layers3 className="size-3.5" />
-              Limit Order Ticket
-            </div>
-            <CardTitle className="text-base font-semibold text-foreground">
-              Place Limit Order
-            </CardTitle>
-            <CardDescription className="text-sm text-muted-foreground">
-              Limit order ticket routed to the connected local chain.
-            </CardDescription>
+        <div className="space-y-2">
+          <div className="inline-flex items-center gap-2 rounded-md bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">
+            <Layers3 className="size-3.5" />
+            Limit Order Ticket
           </div>
-          <CardAction className="justify-self-start lg:justify-self-end">
-            <div className="rounded-lg bg-muted/50 px-3 py-2 text-right">
-              <div className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
-                Account
-              </div>
-              <div className="mt-1 flex items-center gap-2 text-sm font-medium text-foreground">
-                <Wallet className="size-4 text-primary" />
-                <span>
-                  {currentAccount
-                    ? `${currentAccount.slice(0, 6)}...${currentAccount.slice(-4)}`
-                    : "Disconnected"}
-                </span>
-              </div>
-            </div>
-          </CardAction>
+          <CardTitle className="text-base font-semibold text-foreground">
+            Place Limit Order
+          </CardTitle>
+          <CardDescription className="text-sm text-muted-foreground">
+            Build, sign, and submit a limit order to the connected local chain.
+          </CardDescription>
         </div>
       </CardHeader>
 
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <CardContent className="space-y-6 pt-6">
+          <div className="grid gap-3 md:grid-cols-3">
+            <MetaCard
+              icon={<Wallet className="size-3.5 text-primary" />}
+              label="Account"
+              value={
+                currentAccount
+                  ? `${currentAccount.slice(0, 6)}...${currentAccount.slice(-4)}`
+                  : "Disconnected"
+              }
+            />
+            <MetaCard label="Market" value={tradeMarketConfig.label} />
+            <MetaCard
+              label="Mode"
+              value={`${(watchedSide ?? "buy").toUpperCase()} / Chain`}
+            />
+          </div>
+
           <div className="grid gap-3 md:grid-cols-3">
             <div className="rounded-lg bg-muted/50 px-3 py-2.5">
               <div className="mb-1 flex items-center gap-2 text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">
@@ -338,13 +347,13 @@ export function TradeForm({ account, onSubmitted }: TradeFormProps) {
                   <SummaryRow label="Mode" value="Chain" />
                   <SummaryRow
                     label="Contract"
-                    value={tradeOrderBookContract.address}
-                    breakAll
+                    value={shortHex(tradeOrderBookContract.address)}
+                    title={tradeOrderBookContract.address}
                   />
                   <SummaryRow
                     label="Latest Tx"
-                    value={submitTrade.data?.txHash ?? "No tx submitted yet"}
-                    breakAll
+                    value={latestTxHash ? shortHex(latestTxHash) : "No tx submitted yet"}
+                    title={latestTxHash ?? undefined}
                   />
                 </div>
               </div>
@@ -400,7 +409,7 @@ export function TradeForm({ account, onSubmitted }: TradeFormProps) {
           </FieldGroup>
         </CardContent>
 
-        <CardFooter className="flex flex-col gap-3 border-t p-4 sm:flex-row sm:items-center sm:justify-end">
+        <CardFooter className="flex flex-col gap-3 border-t p-4 sm:flex-row sm:items-center">
           <Button
             type="button"
             variant="outline"
@@ -415,7 +424,7 @@ export function TradeForm({ account, onSubmitted }: TradeFormProps) {
           <Button
             type="submit"
             size="lg"
-            className="w-full px-6 sm:w-auto"
+            className="w-full px-6 sm:ml-auto sm:min-w-[220px]"
             disabled={!isReady}
           >
             {submitTrade.isPending ? "Signing / Sending..." : "Sign & Submit"}
@@ -429,20 +438,40 @@ export function TradeForm({ account, onSubmitted }: TradeFormProps) {
 function SummaryRow(props: {
   label: string;
   value: string;
-  breakAll?: boolean;
+  title?: string;
 }) {
   return (
-    <div className="rounded-md bg-background px-3 py-2">
+    <div className="rounded-md bg-background px-3 py-2" title={props.title}>
       <div className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
         {props.label}
       </div>
-      <div
-        className={`mt-1 text-sm font-medium text-foreground ${
-          props.breakAll ? "break-all" : ""
-        }`}
-      >
+      <div className="mt-1 text-sm font-medium text-foreground">
         {props.value}
       </div>
     </div>
   );
+}
+
+function MetaCard(props: {
+  label: string;
+  value: string;
+  icon?: React.ReactNode;
+}) {
+  return (
+    <div className="rounded-lg bg-muted/50 px-3 py-2.5">
+      <div className="mb-1 flex items-center gap-2 text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">
+        {props.icon}
+        {props.label}
+      </div>
+      <div className="text-sm font-medium text-foreground">{props.value}</div>
+    </div>
+  );
+}
+
+function shortHex(value: string) {
+  if (value.length <= 14) {
+    return value;
+  }
+
+  return `${value.slice(0, 8)}...${value.slice(-6)}`;
 }

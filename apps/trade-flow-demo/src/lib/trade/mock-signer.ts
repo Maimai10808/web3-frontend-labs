@@ -5,7 +5,9 @@ export type MockSignature = `0x${string}`;
 async function sha256Hex(value: string) {
   const encoder = new TextEncoder();
   const data = encoder.encode(value);
-  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const digestInput = new Uint8Array(data.length);
+  digestInput.set(data);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", digestInput);
 
   return Array.from(new Uint8Array(hashBuffer))
     .map((item) => item.toString(16).padStart(2, "0"))

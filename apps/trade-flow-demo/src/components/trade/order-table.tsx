@@ -134,6 +134,9 @@ export function OrderTable({ account }: OrderTableProps) {
                 <TableProperties className="size-5" />
               </div>
               <div className="text-sm font-medium text-foreground">No orders yet</div>
+              <p className="max-w-xs text-xs leading-5 text-muted-foreground">
+                Signed orders will appear here after submission.
+              </p>
             </div>
           </div>
         ) : (
