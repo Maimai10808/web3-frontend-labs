@@ -2,12 +2,72 @@
 
 "use client";
 
-import { signOut } from "next-auth/react";
+import { useState } from "react";
+import { getCsrfToken, signIn, signOut } from "next-auth/react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { SiweMessage } from "siwe";
+import { useSignMessage } from "wagmi";
 import { useSiweStatusViewModel } from "../hooks/useSiweStatusViewModel";
 
 export function SiweStatus() {
   const { wallet, auth } = useSiweStatusViewModel();
+  const { signMessageAsync, isPending: isSignMessagePending } = useSignMessage();
+  const [isSiwePending, setIsSiwePending] = useState(false);
+  const [siweError, setSiweError] = useState<string | null>(null);
+
+  const canSiweSignIn =
+    wallet.isConnected &&
+    Boolean(wallet.address) &&
+    Boolean(wallet.chainId) &&
+    !auth.isSignedIn;
+
+  const isSigning = isSignMessagePending || isSiwePending;
+
+  async function handleSiweSignIn() {
+    if (!canSiweSignIn || !wallet.address || !wallet.chainId) {
+      return;
+    }
+
+    try {
+      setSiweError(null);
+      setIsSiwePending(true);
+
+      const nonce = await getCsrfToken();
+      if (!nonce) {
+        throw new Error("Failed to get CSRF token for SIWE login.");
+      }
+
+      const siweMessage = new SiweMessage({
+        domain: window.location.host,
+        address: wallet.address,
+        statement: "Sign in with Ethereum to this demo.",
+        uri: window.location.origin,
+        version: "1",
+        chainId: wallet.chainId,
+        nonce,
+      });
+
+      const message = siweMessage.prepareMessage();
+      const signature = await signMessageAsync({ message });
+
+      const result = await signIn("credentials", {
+        message,
+        signature,
+        redirect: false,
+      });
+
+      if (!result?.ok) {
+        throw new Error(result?.error ?? "SIWE login failed.");
+      }
+    } catch (error) {
+      setSiweError(
+        error instanceof Error ? error.message : "SIWE login failed.",
+      );
+    } finally {
+      setIsSiwePending(false);
+    }
+  }
+
   const statusCards = [
     ["Connected", wallet.isConnected ? "Yes" : "No"],
     ["Address", wallet.address ?? "Not connected"],
@@ -40,7 +100,34 @@ export function SiweStatus() {
         </div>
 
         <div className="mb-8 flex justify-center rounded-xl border-2 border-[#c9a74e] bg-[#1a3a5c]/95 px-4 py-5 shadow-[0_4px_12px_rgba(201,167,78,0.15)]">
-          <ConnectButton />
+          <div className="flex w-full max-w-md flex-col gap-3">
+            <div className="flex justify-center">
+              <ConnectButton />
+            </div>
+
+            {!auth.isSignedIn && (
+              <button
+                type="button"
+                onClick={handleSiweSignIn}
+                disabled={!canSiweSignIn || isSigning}
+                className="w-full rounded-lg border-2 border-[#c9a74e] bg-[#f5ecd7] px-4 py-3 font-sans text-sm font-semibold tracking-wider text-[#1a3a5c] transition-all duration-300 ease-in-out active:opacity-80 hover:shadow-[0_6px_20px_rgba(201,167,78,0.25)] disabled:cursor-not-allowed disabled:bg-[#f5ecd7]/60 disabled:text-[#1a3a5c]/60"
+              >
+                {isSigning ? "Signing SIWE message..." : "Sign-In with Ethereum (SIWE)"}
+              </button>
+            )}
+
+            {!auth.isSignedIn && !wallet.isConnected && (
+              <p className="text-center font-sans text-xs text-[#f5ecd7]/80">
+                Connect wallet first, then complete SIWE login.
+              </p>
+            )}
+
+            {siweError && (
+              <p className="rounded-lg border border-[#c9a74e]/50 bg-[#f7ddcf] px-3 py-2 text-center font-sans text-xs text-[#8b3a2e]">
+                {siweError}
+              </p>
+            )}
+          </div>
         </div>
 
         <div className="grid gap-4 md:grid-cols-2">
