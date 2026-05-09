@@ -47,7 +47,7 @@ contracts/foundry/out
 contracts/foundry/cache
 contracts/foundry/broadcast
 
-packages/contracts/src
+packages/contracts/src/
 
 node_modules
 .next
