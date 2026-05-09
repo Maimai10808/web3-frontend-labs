@@ -47,7 +47,8 @@ contracts/foundry/out
 contracts/foundry/cache
 contracts/foundry/broadcast
 
-packages/contracts/src/
+packages/contracts/src/*
+!packages/contracts/src/.gitkeep
 
 node_modules
 .next
