@@ -4,10 +4,11 @@ A Web3 consumer growth campaign demo that combines wallet connection, task verif
 
 ## Overview
 
-`airdrop-growth-demo` is part of the `web3-frontend-labs` monorepo.  
+`airdrop-growth-demo` is part of the `web3-frontend-labs` monorepo.
 It models a practical C-end dApp growth funnel: users connect a wallet, complete tasks to accumulate points, check campaign eligibility, grow through referrals, and claim rewards when eligible.
 
 The demo intentionally combines:
+
 - frontend campaign state management
 - mock backend verification and referral services
 - on-chain claim interaction
@@ -108,10 +109,12 @@ This demo includes a Foundry deployment + artifact sync flow.
   ```
 
 Synced artifacts are written to:
+
 - `packages/contracts/src/airdrop-growth-demo/contracts.ts`
 - `packages/contracts/src/airdrop-growth-demo/deployment.meta.json`
 
 The app consumes these exports through:
+
 - `apps/airdrop-growth-demo/src/lib/contracts/airdrop-growth.ts`
 
 ## Project Structure
@@ -149,6 +152,7 @@ apps/airdrop-growth-demo/
 ```
 
 Key supporting contract sources in monorepo:
+
 - `contracts/foundry/src/airdrop-growth-demo/*`
 - `contracts/foundry/script/DeployAirdropGrowth.s.sol`
 - `scripts/sync-airdrop-growth-contracts.mjs`
@@ -157,6 +161,7 @@ Key supporting contract sources in monorepo:
 ## Why This Demo Matters
 
 This demo shows how to build a realistic Web3 growth campaign frontend:
+
 - wallet identity as campaign identity
 - task verification and points progression
 - separation of frontend campaign state from on-chain claim state
