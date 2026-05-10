@@ -112,10 +112,27 @@ function generateMainContractsFile({
       `export const ${exportName}Address = "${deployment.address}" as const;`,
     );
     lines.push("");
+    lines.push(
+      `export const ${exportName}Deployment = ${JSON.stringify(
+        deployment,
+        null,
+        2,
+      )} as const;`,
+    );
+    lines.push("");
   }
 
+  const deploymentMetaWithContracts = {
+    ...deploymentMeta,
+    contracts: deployments,
+  };
+
   lines.push(
-    `export const deploymentMeta = ${JSON.stringify(deploymentMeta, null, 2)} as const;`,
+    `export const deploymentMeta = ${JSON.stringify(
+      deploymentMetaWithContracts,
+      null,
+      2,
+    )} as const;`,
   );
   lines.push("");
 
@@ -129,9 +146,19 @@ function generateDeploymentJson({ deployments, deploymentMeta }) {
   };
 }
 
-function generateIndexFile() {
-  return `export * from "./contracts";
-`;
+function generateIndexFile(currentContent = "") {
+  const requiredLines = [
+    `export * from "./contracts";`,
+    `export * from "./nft-collection";`,
+  ];
+
+  const existingExportLines = currentContent
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line.startsWith(`export * from "`));
+
+  const merged = Array.from(new Set([...requiredLines, ...existingExportLines]));
+  return `${merged.join("\n")}\n`;
 }
 
 function main() {
@@ -196,7 +223,12 @@ function main() {
     ),
   );
 
-  writeFile(path.join(contractsPackageDir, "index.ts"), generateIndexFile());
+  const indexPath = path.join(contractsPackageDir, "index.ts");
+  const currentIndex = fs.existsSync(indexPath)
+    ? fs.readFileSync(indexPath, "utf8")
+    : "";
+
+  writeFile(indexPath, generateIndexFile(currentIndex));
 
   console.log("Token launch contracts synced.");
 }

@@ -4,11 +4,13 @@ import {
   launchERC721CollectionAddress as deployedLaunchERC721CollectionAddress,
   launchERC721CollectionDeployment,
   nftCollectionDeploymentMeta,
+} from "@web3-frontend-labs/contracts/token-launch-demo";
+import {
   launchERC721FactoryAbi,
   launchERC721FactoryAddress as deployedLaunchERC721FactoryAddress,
   launchERC721FactoryDeployment,
   nftCollectionFactoryDeploymentMeta,
-} from "@web3-frontend-labs/contracts/token-launch-demo";
+} from "@web3-frontend-labs/contracts/token-launch-demo/nft-collection-factory";
 
 export { launchERC721CollectionAbi, launchERC721FactoryAbi };
 
