@@ -239,13 +239,9 @@ function resolveEvmConnector(
   }
 
   if (walletId === "walletconnect") {
-    if (!process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID) {
-      throw new Error(t("errorWalletConnectProjectIdMissing"));
-    }
-
     const connector = getByIdOrName("walletconnect");
     if (!connector) {
-      throw new Error(t("errorWalletConnectConnectorMissing"));
+      throw new Error(t("errorWalletConnectProjectIdMissing"));
     }
     return { connector, walletName: "WalletConnect" };
   }

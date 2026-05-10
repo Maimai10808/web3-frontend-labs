@@ -16,6 +16,13 @@ import { normalizeMultiChainError } from "../errors";
 import { DEFAULT_CHAIN_BY_ECOSYSTEM } from "../chains";
 import { getExplorerTxUrl } from "../explorer";
 
+const walletConnectProjectId =
+  process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID;
+
+const hasValidWalletConnectProjectId =
+  typeof walletConnectProjectId === "string" &&
+  /^[0-9a-f]{32}$/i.test(walletConnectProjectId);
+
 export const config = createConfig({
   chains: [mainnet, arbitrum, bsc],
   connectors: [
@@ -23,10 +30,13 @@ export const config = createConfig({
     coinbaseWallet({
       appName: "multichain-wallet-demo",
     }),
-    walletConnect({
-      projectId:
-        process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID ?? "demo-project-id",
-    }),
+    ...(hasValidWalletConnectProjectId
+      ? [
+          walletConnect({
+            projectId: walletConnectProjectId,
+          }),
+        ]
+      : []),
   ],
   transports: {
     [mainnet.id]: http(),
