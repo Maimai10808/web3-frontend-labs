@@ -10,11 +10,11 @@ export function WalletStatusPanel() {
   const isExpectedChain = chainId === tokenLaunchChainId;
 
   return (
-    <section className="mb-6 rounded-2xl border border-white/10 bg-gray-900 p-4">
+    <section className="mb-6 rounded-2xl border border-slate-200/80 bg-white/80 p-4 shadow-sm backdrop-blur-sm">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-white">Wallet</h2>
-          <p className="mt-1 text-sm text-gray-400">
+          <h2 className="text-lg font-semibold text-slate-900">Wallet</h2>
+          <p className="mt-1 text-sm text-slate-600">
             Connect a wallet on chain {tokenLaunchChainId} before launching a
             token.
           </p>
@@ -57,14 +57,14 @@ function StatusItem({
 }) {
   const toneClass =
     tone === "success"
-      ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-100"
+      ? "border-emerald-200 bg-emerald-50 text-emerald-700"
       : tone === "warning"
-        ? "border-amber-500/20 bg-amber-500/10 text-amber-100"
-        : "border-white/10 bg-gray-950 text-white";
+        ? "border-amber-200 bg-amber-50 text-amber-700"
+        : "border-slate-200 bg-white text-slate-900";
 
   return (
     <div className={`rounded-xl border p-3 ${toneClass}`}>
-      <div className="mb-1 text-xs uppercase tracking-wide text-gray-500">
+      <div className="mb-1 text-xs uppercase tracking-wide text-slate-500">
         {label}
       </div>
       <div className="break-all text-sm">{value}</div>
