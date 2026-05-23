@@ -50,6 +50,19 @@ web3-frontend-labs/
 
 ## Common Commands
 
+ Install new project:
+```bash
+npx create-next-app@latest apps/new-project-demo \
+  --use-npm \
+  --ts \
+  --tailwind \
+  --eslint \
+  --app \
+  --src-dir \
+  --import-alias "@/*" \
+  --skip-git
+```
+
 Install dependencies:
 
 ```bash
