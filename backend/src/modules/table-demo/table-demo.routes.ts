@@ -1,6 +1,7 @@
 import { Router } from "express"
 
 import { people } from "./table-demo.data"
+import { auditLogEvents, auditLogMeta } from "./audit-log.data"
 import {
   web3TableActivities,
   web3TableActivityMeta,
@@ -41,5 +42,12 @@ tableDemoRoutes.get("/activities", (req, res) => {
       hasPreviousPage: page > 1,
       hasNextPage: page < pageCount,
     },
+  })
+})
+
+tableDemoRoutes.get("/audit-logs", (_req, res) => {
+  res.json({
+    data: auditLogEvents,
+    meta: auditLogMeta,
   })
 })

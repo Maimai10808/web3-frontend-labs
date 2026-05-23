@@ -1,5 +1,6 @@
 import { PeopleTableContainer } from "@/components/people-table"
 import { Web3ActivitiesTableContainer } from "@/components/web3-activities-table"
+import { AuditLogsTableContainer } from "@/components/audit-logs-table"
 
 export default function Page() {
   return (
@@ -42,6 +43,21 @@ export default function Page() {
 
         <Web3ActivitiesTableContainer />
       </section>
+
+      <section className="space-y-4">
+  <div>
+    <h2 className="text-xl font-semibold tracking-tight">
+      Audit Logs Virtual Table
+    </h2>
+    <p className="text-sm text-muted-foreground">
+      Large audit log dataset rendered with TanStack Virtual.
+    </p>
+  </div>
+
+  <AuditLogsTableContainer />
+</section>
+
+
     </main>
   )
 }
