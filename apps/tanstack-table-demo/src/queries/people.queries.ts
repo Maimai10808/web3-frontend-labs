@@ -1,11 +1,11 @@
 import { queryOptions, useQuery } from "@tanstack/react-query"
 
-import { tableDemoKeys } from "@/queries/query-keys/table-demo.keys"
-import { getPeople } from "@/services/table-demo.service"
+import { peopleKeys } from "@/queries/query-keys/people.keys"
+import { getPeople } from "@/services/people.service"
 
 export function peopleQueryOptions() {
   return queryOptions({
-    queryKey: tableDemoKeys.people(),
+    queryKey: peopleKeys.lists(),
     queryFn: getPeople,
   })
 }

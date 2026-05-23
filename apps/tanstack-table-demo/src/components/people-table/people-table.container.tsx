@@ -1,10 +1,10 @@
 "use client"
 
-import { TableDisplay } from "./table-display"
+import { PeopleTable } from "./people-table"
 
-import { usePeopleQuery } from "@/queries/table-demo.queries"
+import { usePeopleQuery } from "@/queries/people.queries"
 
-export function TableDisplayContainer() {
+export function PeopleTableContainer() {
   const peopleQuery = usePeopleQuery()
 
   if (peopleQuery.isPending) {
@@ -23,5 +23,5 @@ export function TableDisplayContainer() {
     )
   }
 
-  return <TableDisplay data={peopleQuery.data.data} />
+  return <PeopleTable data={peopleQuery.data.data} />
 }

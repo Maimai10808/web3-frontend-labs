@@ -1,10 +1,10 @@
 import { createColumnHelper } from "@tanstack/react-table"
 
-import type { Person } from "@/types/table-demo.types"
+import type { Person } from "@/types/people.types"
 
 const columnHelper = createColumnHelper<Person>()
 
-export const tableDisplayColumns = [
+export const peopleTableColumns = [
   columnHelper.accessor("firstName", {
     header: "First Name",
     cell: (info) => info.getValue(),

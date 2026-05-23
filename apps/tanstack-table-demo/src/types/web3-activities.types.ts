@@ -26,13 +26,11 @@ export type Web3TableActivity = {
   notes: string
 }
 
-export type Person = {
-  id: string
-  firstName: string
-  lastName: string
-  age: number
-  visits: number
-  status: "In Relationship" | "Single" | "Complicated"
-  progress: number
-
+export type Web3ActivitiesResponse = {
+  data: Web3TableActivity[]
+  meta: {
+    total: number
+    scenario: string
+    generatedAt: string
+  }
 }

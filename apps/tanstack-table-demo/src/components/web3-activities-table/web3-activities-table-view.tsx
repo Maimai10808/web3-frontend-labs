@@ -13,25 +13,28 @@ import {
   TableRow,
 } from "@web3-frontend-labs/ui/components/table"
 
-import type { Person } from "@/types/table-demo.types"
+import type { Web3TableActivity } from "@/types/web3-activities.types"
 
-type TableDisplayViewProps = {
-  table: TanStackTable<Person>
+type Web3ActivitiesTableViewProps = {
+  table: TanStackTable<Web3TableActivity>
   columnCount: number
 }
 
-export function TableDisplayView({
+export function Web3ActivitiesTableView({
   table,
   columnCount,
-}: TableDisplayViewProps) {
+}: Web3ActivitiesTableViewProps) {
   return (
-    <div className="rounded-md border">
+    <div className="overflow-x-auto rounded-md border">
       <Table>
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
-                <TableHead key={header.id}>
+                <TableHead
+                  key={header.id}
+                  className="whitespace-nowrap"
+                >
                   {header.isPlaceholder
                     ? null
                     : flexRender(
@@ -47,9 +50,12 @@ export function TableDisplayView({
         <TableBody>
           {table.getRowModel().rows.length ? (
             table.getRowModel().rows.map((row) => (
-              <TableRow key={row.id}>
+              <TableRow key={row.id} className="hover:bg-muted/50">
                 {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
+                  <TableCell
+                    key={cell.id}
+                    className="whitespace-nowrap"
+                  >
                     {flexRender(
                       cell.column.columnDef.cell,
                       cell.getContext(),
@@ -61,7 +67,7 @@ export function TableDisplayView({
           ) : (
             <TableRow>
               <TableCell colSpan={columnCount} className="h-24 text-center">
-                No results.
+                No activities found.
               </TableCell>
             </TableRow>
           )}
@@ -71,7 +77,10 @@ export function TableDisplayView({
           {table.getFooterGroups().map((footerGroup) => (
             <TableRow key={footerGroup.id}>
               {footerGroup.headers.map((header) => (
-                <TableCell key={header.id} className="font-normal">
+                <TableCell
+                  key={header.id}
+                  className="whitespace-nowrap font-normal"
+                >
                   {header.isPlaceholder
                     ? null
                     : flexRender(
