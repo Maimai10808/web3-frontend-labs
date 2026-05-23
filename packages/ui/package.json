@@ -6,8 +6,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./utils": "./src/utils.ts",
-    "./components/*": "./src/components/*",
-    "./*": "./src/*"
+    "./components/*": "./src/components/*.tsx"
   },
   "scripts": {
     "lint": "echo \"ui lint\"",

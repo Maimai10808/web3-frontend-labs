@@ -9,7 +9,6 @@
     "./routing": "./src/routing.ts",
     "./navigation": "./src/navigation.ts",
     "./messages/en": "./src/messages/en.json",
-    "./messages/zh-CN": "./src/messages/zh-CN.json",
-    "./*": "./src/*"
+    "./messages/zh-CN": "./src/messages/zh-CN.json"
   }
 }

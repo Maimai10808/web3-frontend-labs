@@ -6,8 +6,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./config": "./src/config.ts",
-    "./provider": "./src/provider.tsx",
-    "./*": "./src/*"
+    "./provider": "./src/provider.tsx"
   },
   "scripts": {
     "lint": "echo \"wallet lint\"",
