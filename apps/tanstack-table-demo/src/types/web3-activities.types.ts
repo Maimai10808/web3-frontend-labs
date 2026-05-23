@@ -1,10 +1,23 @@
+export type Web3ActivityStatus =
+  | "queued"
+  | "processing"
+  | "succeeded"
+  | "failed"
+  | "cancelled"
+
+export type Web3ActivityRiskLevel =
+  | "low"
+  | "medium"
+  | "high"
+  | "critical"
+
 export type Web3TableActivity = {
   id: string
   requestId: string
   chain: string
   protocol: string
   eventType: string
-  status: "queued" | "processing" | "succeeded" | "failed" | "cancelled"
+  status: Web3ActivityStatus
   walletAddress: string
   walletTag: string
   txHash: string
@@ -15,7 +28,7 @@ export type Web3TableActivity = {
   usdValue: number
   gasUsd: number
   slippageBps: number
-  riskLevel: "low" | "medium" | "high" | "critical"
+  riskLevel: Web3ActivityRiskLevel
   riskScore: number
   region: string
   teamOwner: string
@@ -29,6 +42,10 @@ export type Web3TableActivity = {
 export type Web3ActivitiesListParams = {
   page: number
   pageSize: number
+  search?: string
+  status?: Web3ActivityStatus | "all"
+  riskLevel?: Web3ActivityRiskLevel | "all"
+  chain?: string
 }
 
 export type Web3ActivitiesResponse = {

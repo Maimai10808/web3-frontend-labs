@@ -23,13 +23,57 @@ tableDemoRoutes.get("/activities", (req, res) => {
     100,
   )
 
-  const total = web3TableActivities.length
+  const search = String(req.query.search ?? "").trim().toLowerCase()
+  const status = String(req.query.status ?? "all")
+  const riskLevel = String(req.query.riskLevel ?? "all")
+  const chain = String(req.query.chain ?? "all")
+
+  const filteredActivities = web3TableActivities.filter((activity) => {
+    const matchesSearch = search
+      ? [
+          activity.id,
+          activity.requestId,
+          activity.chain,
+          activity.protocol,
+          activity.eventType,
+          activity.walletAddress,
+          activity.walletTag,
+          activity.txHash,
+          activity.assetIn,
+          activity.assetOut,
+          activity.region,
+          activity.teamOwner,
+          activity.notes,
+        ]
+          .join(" ")
+          .toLowerCase()
+          .includes(search)
+      : true
+
+    const matchesStatus =
+      status === "all" ? true : activity.status === status
+
+    const matchesRiskLevel =
+      riskLevel === "all" ? true : activity.riskLevel === riskLevel
+
+    const matchesChain =
+      chain === "all" ? true : activity.chain === chain
+
+    return (
+      matchesSearch &&
+      matchesStatus &&
+      matchesRiskLevel &&
+      matchesChain
+    )
+  })
+
+  const total = filteredActivities.length
   const pageCount = Math.ceil(total / pageSize)
 
   const start = (page - 1) * pageSize
   const end = start + pageSize
 
-  const data = web3TableActivities.slice(start, end)
+  const data = filteredActivities.slice(start, end)
 
   res.json({
     data,

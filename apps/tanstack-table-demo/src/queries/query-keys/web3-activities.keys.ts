@@ -1,5 +1,3 @@
-// src/queries/query-keys/web3-activities.keys.ts
-
 import type { Web3ActivitiesListParams } from "@/types/web3-activities.types"
 
 export const web3ActivitiesKeys = {

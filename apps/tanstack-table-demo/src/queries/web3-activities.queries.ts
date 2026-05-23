@@ -1,5 +1,3 @@
-// src/queries/web3-activities.queries.ts
-
 import {
   keepPreviousData,
   queryOptions,
