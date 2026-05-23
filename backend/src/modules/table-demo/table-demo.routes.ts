@@ -14,9 +14,32 @@ tableDemoRoutes.get("/people", (_req, res) => {
   })
 })
 
-tableDemoRoutes.get("/activities", (_req, res) => {
+tableDemoRoutes.get("/activities", (req, res) => {
+  const page = Math.max(Number(req.query.page ?? 1), 1)
+
+  const pageSize = Math.min(
+    Math.max(Number(req.query.pageSize ?? 20), 1),
+    100,
+  )
+
+  const total = web3TableActivities.length
+  const pageCount = Math.ceil(total / pageSize)
+
+  const start = (page - 1) * pageSize
+  const end = start + pageSize
+
+  const data = web3TableActivities.slice(start, end)
+
   res.json({
-    data: web3TableActivities,
-    meta: web3TableActivityMeta,
+    data,
+    meta: {
+      ...web3TableActivityMeta,
+      total,
+      page,
+      pageSize,
+      pageCount,
+      hasPreviousPage: page > 1,
+      hasNextPage: page < pageCount,
+    },
   })
 })

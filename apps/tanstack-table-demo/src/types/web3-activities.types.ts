@@ -26,10 +26,20 @@ export type Web3TableActivity = {
   notes: string
 }
 
+export type Web3ActivitiesListParams = {
+  page: number
+  pageSize: number
+}
+
 export type Web3ActivitiesResponse = {
   data: Web3TableActivity[]
   meta: {
     total: number
+    page: number
+    pageSize: number
+    pageCount: number
+    hasPreviousPage: boolean
+    hasNextPage: boolean
     scenario: string
     generatedAt: string
   }

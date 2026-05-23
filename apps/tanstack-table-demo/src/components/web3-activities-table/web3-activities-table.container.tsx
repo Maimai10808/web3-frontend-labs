@@ -1,11 +1,23 @@
 "use client"
 
+import * as React from "react"
+
+import type { PaginationState } from "@tanstack/react-table"
+
 import { Web3ActivitiesTable } from "./web3-activities-table"
 
 import { useWeb3ActivitiesQuery } from "@/queries/web3-activities.queries"
 
 export function Web3ActivitiesTableContainer() {
-  const activitiesQuery = useWeb3ActivitiesQuery()
+  const [pagination, setPagination] = React.useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 20,
+  })
+
+  const activitiesQuery = useWeb3ActivitiesQuery({
+    page: pagination.pageIndex + 1,
+    pageSize: pagination.pageSize,
+  })
 
   if (activitiesQuery.isPending) {
     return (
@@ -25,14 +37,25 @@ export function Web3ActivitiesTableContainer() {
 
   return (
     <div className="space-y-3">
-      <div className="text-sm text-muted-foreground">
-        Total activities:{" "}
-        <span className="font-medium text-foreground">
-          {activitiesQuery.data.meta.total}
-        </span>
+      <div className="flex items-center justify-between gap-4 text-sm text-muted-foreground">
+        <div>
+          Total activities:{" "}
+          <span className="font-medium text-foreground">
+            {activitiesQuery.data.meta.total}
+          </span>
+        </div>
+
+        {activitiesQuery.isFetching ? (
+          <div>Updating...</div>
+        ) : null}
       </div>
 
-      <Web3ActivitiesTable data={activitiesQuery.data.data} />
+      <Web3ActivitiesTable
+        data={activitiesQuery.data.data}
+        rowCount={activitiesQuery.data.meta.total}
+        pagination={pagination}
+        onPaginationChange={setPagination}
+      />
     </div>
   )
 }
