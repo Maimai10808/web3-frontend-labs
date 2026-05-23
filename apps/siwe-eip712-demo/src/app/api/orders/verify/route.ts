@@ -1,13 +1,13 @@
 import { getServerSession } from "next-auth";
 import { isAddress, isAddressEqual, recoverTypedDataAddress } from "viem";
-import { authOptions } from "@/src/lib/auth";
+import { authOptions } from "@/lib/auth";
 import {
   getOrderDomain,
   orderInputSchema,
   orderTypes,
   toOrderTypedData,
-} from "@/src/lib/eip712";
-import { consumeOrderNonce } from "@/src/lib/order-nonce-store";
+} from "@/lib/eip712";
+import { consumeOrderNonce } from "@/lib/order-nonce-store";
 
 export async function POST(request: Request) {
   try {

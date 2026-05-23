@@ -3,14 +3,14 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
-import { useDemoToken } from "@/src/hooks/contract/useDemoToken";
-import { useSignedOrderBook } from "@/src/hooks/contract/useSignedOrderBook";
-import { useOrderSigner as useSignedOrderSigner } from "@/src/hooks/order/useOrderSigner";
+import { useDemoToken } from "@/hooks/contract/useDemoToken";
+import { useSignedOrderBook } from "@/hooks/contract/useSignedOrderBook";
+import { useOrderSigner as useSignedOrderSigner } from "@/hooks/order/useOrderSigner";
 import {
   signedOrderFormSchema,
   toSignedOrderTypedData,
   type SignedOrderFormInput,
-} from "@/src/lib/eip712/order";
+} from "@/lib/eip712/order";
 
 type ExecuteState = {
   mode: "normal" | "tampered";

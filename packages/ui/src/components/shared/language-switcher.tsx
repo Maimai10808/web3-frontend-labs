@@ -8,8 +8,8 @@ import {
   localeLabels,
   locales,
   type AppLocale,
-} from "../../../../i18n/src/config";
-import { usePathname, useRouter } from "../../../../i18n/src/navigation";
+} from "@web3-frontend-labs/i18n/config";
+import { usePathname, useRouter } from "@web3-frontend-labs/i18n/navigation";
 
 import { Button } from "../button";
 import {

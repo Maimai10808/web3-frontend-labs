@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { useAccount, useChainId, useSwitchChain } from "wagmi";
 
-import { deploymentMeta } from "@/src/lib/contracts";
+import { deploymentMeta } from "@/lib/contracts";
 
 import { useDemoToken } from "./useDemoToken";
 import { useTokenFaucet } from "./useTokenFaucet";

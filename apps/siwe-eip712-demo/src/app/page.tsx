@@ -1,4 +1,4 @@
-import { SiweStatus } from "@/src/components/siwe-status";
+import { SiweStatus } from "@/components/siwe-status";
 import { OrderSigner } from "../components/order-signer";
 import { SignatureFlowExplainer } from "../components/signature-flow-explainer";
 

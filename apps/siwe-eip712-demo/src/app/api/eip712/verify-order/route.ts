@@ -1,19 +1,19 @@
 import { getServerSession } from "next-auth";
 import { z } from "zod";
 import { isAddress, isAddressEqual, recoverTypedDataAddress } from "viem";
-import { authOptions } from "@/src/lib/auth";
+import { authOptions } from "@/lib/auth";
 import {
   expectedOrderChainId,
   expectedOrderTokenAddress,
   getSignedOrderBookDomain,
   isAllowedOrderToken,
-} from "@/src/lib/eip712/domain";
+} from "@/lib/eip712/domain";
 import {
   signedOrderInputSchema,
   signedOrderTypes,
   toSignedOrderTypedData,
-} from "@/src/lib/eip712/order";
-import { consumeSignedOrderNonce } from "@/src/lib/eip712/nonce";
+} from "@/lib/eip712/order";
+import { consumeSignedOrderNonce } from "@/lib/eip712/nonce";
 
 const verifyOrderRequestSchema = z.object({
   chainId: z.number().int().positive(),

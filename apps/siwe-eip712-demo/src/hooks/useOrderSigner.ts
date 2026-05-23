@@ -9,7 +9,7 @@ import {
   orderTypes,
   toOrderTypedData,
   type MockOrderInput,
-} from "@/src/lib/eip712";
+} from "@/lib/eip712";
 
 export type OrderFormValues = {
   token: `0x${string}`;

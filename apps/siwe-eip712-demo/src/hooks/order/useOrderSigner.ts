@@ -3,12 +3,12 @@
 import { useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useAccount, useChainId, useSignTypedData } from "wagmi";
-import { contracts } from "@/src/lib/contracts";
+import { contracts } from "@/lib/contracts";
 import {
   expectedOrderChainId,
   expectedOrderTokenAddress,
   getSignedOrderBookDomain,
-} from "@/src/lib/eip712/domain";
+} from "@/lib/eip712/domain";
 import {
   buildSignedOrderInput,
   signedOrderFormSchema,
@@ -17,7 +17,7 @@ import {
   toSignedOrderTypedData,
   type SignedOrderFormInput,
   type SignedOrderInput,
-} from "@/src/lib/eip712/order";
+} from "@/lib/eip712/order";
 
 type OrderNonceResponse =
   | {

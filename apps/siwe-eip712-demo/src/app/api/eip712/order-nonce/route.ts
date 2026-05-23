@@ -1,7 +1,7 @@
 import { getServerSession } from "next-auth";
 import { isAddress } from "viem";
-import { authOptions } from "@/src/lib/auth";
-import { createSignedOrderNonce } from "@/src/lib/eip712/nonce";
+import { authOptions } from "@/lib/auth";
+import { createSignedOrderNonce } from "@/lib/eip712/nonce";
 
 export async function POST() {
   const session = await getServerSession(authOptions);

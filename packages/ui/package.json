@@ -5,7 +5,9 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./utils": "./src/utils.ts"
+    "./utils": "./src/utils.ts",
+    "./components/*": "./src/components/*",
+    "./*": "./src/*"
   },
   "scripts": {
     "lint": "echo \"ui lint\"",
@@ -16,6 +18,7 @@
     "react-dom": "^19.0.0"
   },
   "dependencies": {
+    "@web3-frontend-labs/i18n": "*",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "radix-ui": "^1.4.3",

@@ -4,10 +4,12 @@
   "private": true,
   "type": "module",
   "exports": {
+    ".": "./src/index.ts",
     "./config": "./src/config.ts",
     "./routing": "./src/routing.ts",
     "./navigation": "./src/navigation.ts",
     "./messages/en": "./src/messages/en.json",
-    "./messages/zh-CN": "./src/messages/zh-CN.json"
+    "./messages/zh-CN": "./src/messages/zh-CN.json",
+    "./*": "./src/*"
   }
 }

@@ -1,7 +1,7 @@
 import { getServerSession } from "next-auth";
 import { isAddress } from "viem";
-import { authOptions } from "@/src/lib/auth";
-import { createOrderNonce } from "@/src/lib/order-nonce-store";
+import { authOptions } from "@/lib/auth";
+import { createOrderNonce } from "@/lib/order-nonce-store";
 
 export async function POST() {
   const session = await getServerSession(authOptions);

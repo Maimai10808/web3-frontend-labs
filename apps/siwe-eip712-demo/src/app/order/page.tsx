@@ -1,5 +1,5 @@
-import { OrderSigner } from "@/src/components/order-signer";
-import { SiweStatus } from "@/src/components/siwe-status";
+import { OrderSigner } from "@/components/order-signer";
+import { SiweStatus } from "@/components/siwe-status";
 
 export default function OrderPage() {
   return (

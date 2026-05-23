@@ -2,7 +2,7 @@
 
 import { useAccount, useReadContract, useWriteContract } from "wagmi";
 import { formatUnits } from "viem";
-import { contracts } from "@/src/lib/contracts";
+import { contracts } from "@/lib/contracts";
 
 export function useTokenFaucet() {
   const { address } = useAccount();

@@ -105,6 +105,93 @@ Run a specific app:
 npm run dev -w apps/ai-task-state-demo
 ```
 
+## Using Shared Workspace Packages in a New Demo
+
+When creating a new app under `apps/*`, follow this pattern for internal package usage.
+
+### 1. Add workspace dependencies in the app `package.json`
+
+Use workspace package names (not relative filesystem paths):
+
+```json
+{
+  "dependencies": {
+    "@web3-frontend-labs/ui": "*",
+    "@web3-frontend-labs/wallet": "*",
+    "@web3-frontend-labs/contracts": "*",
+    "@web3-frontend-labs/i18n": "*"
+  }
+}
+```
+
+Then install from repo root:
+
+```bash
+npm install
+```
+
+### 2. Import rules
+
+- Package-internal imports: use `@/*` (mapped to the app's own `src/*`)
+- Cross-package imports: use package names only
+- Do not use `../../../packages/...` style imports
+
+Examples:
+
+```ts
+import { cn } from "@web3-frontend-labs/ui/utils";
+import { Button } from "@web3-frontend-labs/ui/components/button";
+import { Web3WalletProvider } from "@web3-frontend-labs/wallet";
+import { tokenFactoryAbi } from "@web3-frontend-labs/contracts/token-launch-demo";
+import { routing } from "@web3-frontend-labs/i18n/routing";
+```
+
+### 3. Next.js transpilation for workspace TypeScript packages
+
+If the app consumes internal TS source packages, add `transpilePackages` in `next.config.ts`:
+
+```ts
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  transpilePackages: [
+    "@web3-frontend-labs/ui",
+    "@web3-frontend-labs/wallet",
+    "@web3-frontend-labs/contracts",
+    "@web3-frontend-labs/i18n",
+  ],
+};
+
+export default nextConfig;
+```
+
+Keep only the packages your app actually uses.
+
+### 4. Tailwind v4 source scanning for shared UI classes
+
+If you use `@web3-frontend-labs/ui` components, add to your app `src/app/globals.css`:
+
+```css
+@import "tailwindcss";
+@source "../../../../packages/ui/src/**/*.{ts,tsx}";
+```
+
+### 5. tsconfig alias baseline for apps
+
+Use local app alias only:
+
+```json
+{
+  "compilerOptions": {
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  }
+}
+```
+
+Do not map app `@/*` to other workspace packages.
+
 ## Local Blockchain and Contract Commands
 
 Start local Anvil chain:

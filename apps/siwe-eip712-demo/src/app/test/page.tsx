@@ -1,6 +1,6 @@
 "use client";
 
-import { useContracts } from "@/src/hooks/contract/useContracts";
+import { useContracts } from "@/hooks/contract/useContracts";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 
 export default function Page() {

@@ -7,14 +7,14 @@ import {
   useSignTypedData,
   useWriteContract,
 } from "wagmi";
-import { contracts } from "@/src/lib/contracts";
-import { getSignedOrderBookDomain } from "@/src/lib/eip712/domain";
+import { contracts } from "@/lib/contracts";
+import { getSignedOrderBookDomain } from "@/lib/eip712/domain";
 import {
   buildSignedOrderInput,
   signedOrderTypes,
   toSignedOrderTypedData,
   type SignedOrderTypedData,
-} from "@/src/lib/eip712/order";
+} from "@/lib/eip712/order";
 
 export type SignedOrder = SignedOrderTypedData;
 
