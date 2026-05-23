@@ -1,9 +1,27 @@
-export type Person = {
+export type Web3TableActivity = {
   id: string
-  firstName: string
-  lastName: string
-  age: number
-  visits: number
-  status: "In Relationship" | "Single" | "Complicated"
-  progress: number
+  requestId: string
+  chain: string
+  protocol: string
+  eventType: string
+  status: "queued" | "processing" | "succeeded" | "failed" | "cancelled"
+  walletAddress: string
+  walletTag: string
+  txHash: string
+  blockNumber: number
+  assetIn: string
+  assetOut: string
+  amountIn: number
+  usdValue: number
+  gasUsd: number
+  slippageBps: number
+  riskLevel: "low" | "medium" | "high" | "critical"
+  riskScore: number
+  region: string
+  teamOwner: string
+  createdAt: string
+  updatedAt: string
+  retryCount: number
+  confirmationCount: number
+  notes: string
 }
