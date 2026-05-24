@@ -53,16 +53,16 @@ import { Area, AreaChart, CartesianGrid, XAxis } from "recharts"
 import { toast } from "sonner"
 import { z } from "zod"
 
-import { useIsMobile } from "@/hooks/use-mobile"
-import { Badge } from "@/components/badge"
-import { Button } from "@/components/button"
+import { useIsMobile } from "../hooks/use-mobile"
+import { Badge } from "./badge"
+import { Button } from "./button"
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
   type ChartConfig,
-} from "@/components/chart"
-import { Checkbox } from "@/components/checkbox"
+} from "./chart"
+import { Checkbox } from "./checkbox"
 import {
   Drawer,
   DrawerClose,
@@ -72,7 +72,7 @@ import {
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
-} from "@/components/drawer"
+} from "./drawer"
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -80,17 +80,17 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/dropdown-menu"
-import { Input } from "@/components/input"
-import { Label } from "@/components/label"
+} from "./dropdown-menu"
+import { Input } from "./input"
+import { Label } from "./label"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/select"
-import { Separator } from "@/components/separator"
+} from "./select"
+import { Separator } from "./separator"
 import {
   Table,
   TableBody,
@@ -98,13 +98,13 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/table"
+} from "./table"
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
-} from "@/components/tabs"
+} from "./tabs"
 
 export const schema = z.object({
   id: z.number(),
